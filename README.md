@@ -24,8 +24,8 @@ The first line of the file is always the file field headers.
 
 Reserved field names:
 
-- `articleid` - id of the updated article, contains a value of **0** for the newly added article, ignores rows for articles with a non-existent id (** required field **);
-- `articletitle` - the title of the article (** required field **);
+- `articleid` - id of the updated article, contains a value of **0** for the newly added article, ignores rows for articles with a non-existent id (**required field**);
+- `articletitle` - the title of the article (**required field**);
 - `articlecat` - id of the category of the article, for new articles if the field is absent or the id of the nonexistent category is specified, the category «Uncategorised» will be applied, for existing articles will be ignored;
 - `articlelang` - article language, for new articles in the absence of a field the article will be available for all languages, for existing articles will be ignored;
 - `articleintrotext` - introductory text of the article;
