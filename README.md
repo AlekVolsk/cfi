@@ -47,9 +47,9 @@ If there are no data import errors, the imported file is deleted, otherwise the 
 
 ### Data Format
 
-When exporting, data is written to the file as is, in the format in which it is stored in the database of your site: plain text, text with HTML markup, json structures and other complex structures.
+When exporting, data is written to the file as is, in the format in which it is stored in the database of your site: plain text, text with HTML markup, json structures and other complex string structures.
 
-For standard additional Joomla fields of a list type that return the structure of the stored data in the form of unassociated arrays, json is returned to the resulting file. For non-standard fields, the structure `array ::` is written before the search value in the file: this is necessary so that with the possible subsequent import of this data, the plugin can parse the json value from the file and substitute the prepared array for the corresponding field. If you don’t understand anything from the above phrase, it’s okay, just don’t touch the value of `array ::` in your file or delete this column completely in order to avoid damage to the data of the corresponding article field.
+For standard additional Joomla fields of a list type that return the structure of the stored data in the form of unassociated arrays, json is returned to the resulting file. For non-standard fields, the structure `array::` is written before the json value in the file: this is necessary so that with the possible subsequent import of this data, the plugin can parse the json value from the file and substitute the prepared array for the corresponding field. If you don’t understand anything from the above phrase, it’s okay, just don’t touch the value of `array ::` in your file or delete this column completely in order to avoid damage to the data of the corresponding article field.
 
 ---
 
