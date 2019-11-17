@@ -1,0 +1,134 @@
+/**
+ * @package     Joomla.Plugin
+ * @subpackage  System.cfi
+ * @copyright   Copyright (C) 2019 Aleksey A. Morozov. All rights reserved.
+ * @license     GNU General Public License version 3 or later; see http://www.gnu.org/licenses/gpl-3.0.txt
+ */
+
+:root {
+    --cfi-background:       #f0f0f0;
+    --cfi-border:           #dedede;
+    --cfi-fill:             #fff;
+    --cfi-hr:               #ccc;
+    --cfi-overlay:          rgba(0,0,0,.05);
+    --cfi-overlay-milk:     rgba(255,255,255,.3);
+    --cfi-overlay-milk-dk:  rgba(255,255,255,.7);
+}
+
+.cfi-tollbarbtn {
+    display: inline-flex !important;
+    align-items: center;
+}
+
+.cfi-tollbarbtn svg {
+    margin-bottom: 2px;
+    margin-right: 1ex;
+    fill: var(--cfi-fill);
+}
+
+.cfi-well {
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid var(--cfi-border);
+    border-radius: 3px;
+    background-color: var(--cfi-background);
+}
+
+.cfi-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 1.15em;
+    line-height: 17px;
+    font-weight: 600;
+}
+
+.cfi-header svg {
+    margin-right: 1ex;
+}
+
+.cfi-cb-block {
+    margin-bottom: 20px;
+}
+
+.cfi-cb {
+    margin: 0 1ex 0 0 !important;
+}
+
+.cfi-export {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 3px;
+    border: 1px solid var(--cfi-border);
+    background-color: var(--cfi-overlay-milk);
+}
+
+.cfi-export .btn {
+    margin-left: 10px;
+    margin-right: 10px;
+    white-space: nowrap;
+}
+
+.cfi-dropzone {
+    position: relative;
+    min-height: 140px;
+    border-radius: 3px;
+    border: 2px dashed var(--cfi-border);
+    overflow: hidden;
+}
+
+.cfi-input-file {
+    position: absolute;
+    z-index: -1;
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+}
+
+.cfi-input-label {
+    box-sizing: border-box;;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin-bottom: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    font-size: 1.1em;
+    background-color: var(--cfi-overlay-milk);
+    transition-duration: .2s;
+    transition-timing-function: ease;
+    transition-property: background-color;
+}
+
+.cfi-dropzone-highlight .cfi-input-label,
+.cfi-input-label:hover {
+    background-color: var(--cfi-overlay-milk-dk);
+    text-decoration: underline;
+}
+
+.cfi-desc {
+    margin-top: 20px;
+    padding: 15px;
+    font-size: .9em;
+    border-radius: 3px;
+    background-color: var(--cfi-overlay);
+}
+
+.cfi-desc p {
+    margin: 0 0 5px;
+}
+
+.cfi-desc hr {
+    margin: 10px 0;
+    border-top: none;
+    border-bottom: .5px solid var(--cfi-hr);
+}

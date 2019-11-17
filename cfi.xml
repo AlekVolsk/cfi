@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="3.7" type="plugin" group="system" method="upgrade">
+    <name>PLG_CFI</name>
+    <version>1.0.0</version>
+    <creationDate>November 2019</creationDate>
+    <author>Aleksey A. Morozov</author>
+    <authorEmail>alekvolsk@yandex.ru</authorEmail>
+    <authorUrl>https://alekvolsk.pw</authorUrl>
+    <copyright>© 2019 Aleksey A. Morozov. All right reserved.</copyright>
+    <license>GNU General Public License version 3 or later; see http://www.gnu.org/licenses/gpl-3.0.txt</license>
+    <description>PLG_CFI_XML_DESCRIPTION</description>
+    <scriptfile>script.php</scriptfile>
+    <php_minimum>5.6</php_minimum>
+    <files>
+        <filename plugin="cfi">cfi.php</filename>
+        <folder>assets</folder>
+        <folder>layouts</folder>
+    </files>
+    <languages folder="language">
+        <language tag="en-GB">en-GB/en-GB.plg_system_cfi.ini</language>
+        <language tag="en-GB">en-GB/en-GB.plg_system_cfi.sys.ini</language>
+        <language tag="ru-RU">ru-RU/ru-RU.plg_system_cfi.ini</language>
+        <language tag="ru-RU">ru-RU/ru-RU.plg_system_cfi.sys.ini</language>
+    </languages>
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field name="cp" type="list" label="PLG_CFI_PARAM_CP" default="CP1251">
+                    <option value="7bit">7bit</option>
+                    <option value="8bit">8bit</option>
+                    <option value="ArmSCII-8">ArmSCII-8</option>
+                    <option value="ASCII">ASCII</option>
+                    <option value="BASE64">BASE64</option>
+                    <option value="BIG-5">BIG-5</option>
+                    <option value="byte2be">byte2be</option>
+                    <option value="byte2le">byte2le</option>
+                    <option value="byte4be">byte4be</option>
+                    <option value="byte4le">byte4le</option>
+                    <option value="CP866">CP866</option>
+                    <option value="CP936">CP936</option>
+                    <option value="CP950">CP950</option>
+                    <option value="CP1251">CP1251</option>
+                    <option value="CP1252">CP1252</option>
+                    <option value="CP932">CP932</option>
+                    <option value="CP50220">CP50220</option>
+                    <option value="CP50220raw">CP50220raw</option>
+                    <option value="CP50221">CP50221</option>
+                    <option value="CP50222">CP50222</option>
+                    <option value="CP51932">CP51932</option>
+                    <option value="EUC-JP">EUC-JP</option>
+                    <option value="eucJP-win">eucJP-win</option>
+                    <option value="EUC-CN">EUC-CN</option>
+                    <option value="EUC-KR">EUC-KR</option>
+                    <option value="EUC-TW">EUC-TW</option>
+                    <option value="GB18030">GB18030</option>
+                    <option value="HTML-ENTITIES">HTML-ENTITIES</option>
+                    <option value="HZ">HZ</option>
+                    <option value="ISO-2022-KR">ISO-2022-KR</option>
+                    <option value="ISO-2022-JP">ISO-2022-JP</option>
+                    <option value="ISO-2022-JP-MS">ISO-2022-JP-MS</option>
+                    <option value="ISO-2022-JP-KDDI">ISO-2022-JP-KDDI</option>
+                    <option value="ISO-8859-1">ISO-8859-1</option>
+                    <option value="ISO-8859-2">ISO-8859-2</option>
+                    <option value="ISO-8859-3">ISO-8859-3</option>
+                    <option value="ISO-8859-4">ISO-8859-4</option>
+                    <option value="ISO-8859-5">ISO-8859-5</option>
+                    <option value="ISO-8859-6">ISO-8859-6</option>
+                    <option value="ISO-8859-7">ISO-8859-7</option>
+                    <option value="ISO-8859-8">ISO-8859-8</option>
+                    <option value="ISO-8859-9">ISO-8859-9</option>
+                    <option value="ISO-8859-10">ISO-8859-10</option>
+                    <option value="ISO-8859-13">ISO-8859-13</option>
+                    <option value="ISO-8859-14">ISO-8859-14</option>
+                    <option value="ISO-8859-15">ISO-8859-15</option>
+                    <option value="ISO-8859-16">ISO-8859-16</option>
+                    <option value="JIS">JIS</option>
+                    <option value="JIS-ms">JIS-ms</option>
+                    <option value="KOI8-R">KOI8-R</option>
+                    <option value="KOI8-U">KOI8-U</option>
+                    <option value="SJIS">SJIS</option>
+                    <option value="SJIS-win">SJIS-win</option>
+                    <option value="UCS-2">UCS-2</option>
+                    <option value="UCS-2BE">UCS-2BE</option>
+                    <option value="UCS-2LE">UCS-2LE</option>
+                    <option value="UCS-4">UCS-4</option>
+                    <option value="UCS-4BE">UCS-4BE</option>
+                    <option value="UCS-4LE">UCS-4LE</option>
+                    <option value="UHC">UHC</option>
+                    <option value="UTF-7">UTF-7</option>
+                    <option value="UTF7-IMAP">UTF7-IMAP</option>
+                    <option value="UTF-16">UTF-16</option>
+                    <option value="UTF-16BE">UTF-16BE</option>
+                    <option value="UTF-16LE">UTF-16LE</option>
+                    <option value="UTF-32">UTF-32</option>
+                    <option value="UTF-32BE">UTF-32BE</option>
+                    <option value="UTF-32LE">UTF-32LE</option>
+                </field>
+                <field name="showdesc" type="radio" label="PLG_CFI_PARAM_SHOWDESC" class="btn-group" default="1">
+			    	<option value="0">JNO</option>
+			    	<option value="1">JYES</option>
+			    </field>
+                <field name="xmldesc" type="note" label="PLG_CFI_PRM_DESCRIPTION_LABEL" description="PLG_CFI_PRM_DESCRIPTION_DESC"/>
+            </fieldset>
+        </fields>
+    </config>
+</extension>
