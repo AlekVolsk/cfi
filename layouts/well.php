@@ -51,8 +51,9 @@ extract($displayData);
         <?php
         echo 
             ($showdesc ? Text::_('PLG_CFI_DESC_FORMAT') . '<hr>' : ''), 
+            '<p><strong>' . Text::_('PLG_CFI_DESC_WARN_LABEL') . '</strong></p>', 
             Text::_('PLG_CFI_DESC_WARN'), 
-            ($showdesc ? Text::_('PLG_CFI_DESC_SD') : '');
+            ($showdesc ? '<hr>' . Text::_('PLG_CFI_DESC_SD') : '');
         ?>
     </div>
 

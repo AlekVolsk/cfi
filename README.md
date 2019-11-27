@@ -1,12 +1,12 @@
 # CFI
 
-![Version](https://img.shields.io/badge/VERSION-1.0.0-0366d6.svg?style=for-the-badge)
+![Version](https://img.shields.io/badge/VERSION-1.0.1-0366d6.svg?style=for-the-badge)
 ![Joomla](https://img.shields.io/badge/joomla-3.9+-1A3867.svg?style=for-the-badge)
 ![Php](https://img.shields.io/badge/php-5.6+-8892BF.svg?style=for-the-badge)
 
 _description in Russian [here](README.ru.md)_
 
-System plugin for Joomla 3.7+ for impexing articles with additional fields
+System plugin for Joomla 3.7+ for importing and exporting articles with additional fields
 
 The plugin is designed to import and export standard articles and custom additional fields for them.
 
@@ -18,7 +18,7 @@ Export is initially adapted for opening the resulting file in MS Excel or its an
 
 Data is exported to a file and imported from a CSV file with the mandatory separator `;`.
 
-The default encoding of the file is UTF-8, it supports automatic conversion of the encoding specified in the plugin's only configuration.
+The default file encoding, if the option «Convert encoding…» is not set: UTF-8 w/o BOM. It supports automatic conversion of the encoding specified in the plugin's only configuration.
 
 The first line of the file is always the file field headers.
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="3.7" type="plugin" group="system" method="upgrade">
     <name>PLG_CFI</name>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <creationDate>November 2019</creationDate>
     <author>Aleksey A. Morozov</author>
     <authorEmail>alekvolsk@yandex.ru</authorEmail>
@@ -99,8 +99,12 @@
 			    	<option value="0">JNO</option>
 			    	<option value="1">JYES</option>
 			    </field>
-                <field name="xmldesc" type="note" label="PLG_CFI_PRM_DESCRIPTION_LABEL" description="PLG_CFI_PRM_DESCRIPTION_DESC"/>
+                <field name="xmldesc" type="note" label="PLG_CFI_DESC_FORMAT_LABEL" description="PLG_CFI_DESC_FORMAT"/>
+                <field name="desc" type="note" label="PLG_CFI_DESC_WARN_LABEL" description="PLG_CFI_DESC_WARN"/>
             </fieldset>
         </fields>
     </config>
+    <updateservers>
+        <server type="extension" priority="1" name="View Logs"><![CDATA[https://joomla-update.org/extensions/cfi/cfi_update.xml]]></server>
+    </updateservers>
 </extension>
