@@ -25,6 +25,8 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 
 class plgSystemCfi extends CMSPlugin
 {
+    const BOM = "\xEF" . "\xBB" . "\xBF"; // UTF BOM signature
+    
     private $_app;
     private $_doc;
     private $_user;
@@ -115,10 +117,10 @@ class plgSystemCfi extends CMSPlugin
 
         $db = Factory::getDbo();
         $query = $db->getQuery(true)
-            ->select('`id`, `title`')
-            ->from('`#__categories`')
-            ->where('`extension` = "com_content"')
-            ->order('`title`');
+            ->select('id, title')
+            ->from('#__categories')
+            ->where('extension = "com_content"')
+            ->order('title');
         $db->setQuery($query);
         try {
             $categories = $db->loadObjectList();
@@ -147,7 +149,7 @@ class plgSystemCfi extends CMSPlugin
 
     public function onAjaxCfi()
     {
-        Log::addLogger(['text_file' => 'cfi.php', 'text_entry_format' => "{DATETIME}\t{PRIORITY}\t{MESSAGE}"], Log::ALL);
+        Log::addLogger(['textfile' => 'cfi.php', 'text_entry_format' => "{DATETIME}\t{PRIORITY}\t{MESSAGE}"], Log::ALL);
 
         $state = $this->_app->input->get('cfistate', '');
         
@@ -155,9 +157,9 @@ class plgSystemCfi extends CMSPlugin
             $data = [
                 'result' => Text::_('JINVALID_TOKEN'),
                 'user' => $this->_user,
-                'file' => $_FILES,
-                'get' => $_GET,
-                'post' => $_POST
+                'file' => $this->_app->input->files->getArray(),
+                'get' => $this->_app->input->get->getArray(),
+                'post' => $this->_app->input->post->getArray()
             ];
             Log::add(json_encode($data), Log::ERROR);
             $this->_printJson($data['result']);
@@ -175,7 +177,7 @@ class plgSystemCfi extends CMSPlugin
         if ($state == 'download') {
             $this->_file = $this->_app->input->get('f', '');
             if ($this->_file) {
-                $this->_file = base64_decode($this->_file);
+                $this->_file = Path::clean(Factory::getConfig()->get('tmp_path') . '/' . urldecode($this->_file));
                 $this->_fileDownload($this->_file);
                 @unlink($this->_file);
             }
@@ -201,26 +203,26 @@ class plgSystemCfi extends CMSPlugin
         if (is_array($file) && count($file)) {
             
             if ($file['error'] != 0) {
-                $data['result'] = Text::_('PLG_CFI_FILE_ERROR');
+                $data['result'] = Text::_('PLG_CFIfile_ERROR');
                 Log::add(json_encode($data), Log::ERROR);
                 $this->_printJson($data['result']);
             }
             
             if (!$file['size']) {
-                $data['result'] = Text::_('PLG_CFI_FILE_SIZE');
+                $data['result'] = Text::_('PLG_CFIfile_SIZE');
                 Log::add(json_encode($data), Log::ERROR);
                 $this->_printJson($data['result']);
             }
             
             if (pathinfo($file['name'], PATHINFO_EXTENSION) !== 'csv') {
-                $data['result'] = Text::_('PLG_CFI_FILE_TYPE');
+                $data['result'] = Text::_('PLG_CFIfile_TYPE');
                 Log::add(json_encode($data), Log::ERROR);
                 $this->_printJson($data['result']);
             }
             
             $this->_file = Path::clean(Factory::getConfig()->get('tmp_path') . '/cfi_' . date('Y-m-d-H-i-s') . '.csv');
             if (!@move_uploaded_file($file['tmp_name'], $this->_file)) {
-                $data['result'] = Text::_('PLG_CFI_FILE_MOVE');
+                $data['result'] = Text::_('PLG_CFIfile_MOVE');
                 Log::add(json_encode($data), Log::ERROR);
                 $this->_printJson($data['result']);
             }
@@ -228,7 +230,7 @@ class plgSystemCfi extends CMSPlugin
             return true;
         }
 
-        $data['result'] = Text::_('PLG_CFI_FILE_NOTHING');
+        $data['result'] = Text::_('PLG_CFIfile_NOTHING');
         Log::add(json_encode($data), Log::ERROR);
         $this->_printJson($data['result']);
     }
@@ -259,7 +261,7 @@ class plgSystemCfi extends CMSPlugin
         }
 
         // unset utf-8 bom
-        $content = str_replace("\xEF\xBB\xBF", '', $content);
+        $content = str_replace($this->BOM, '', $content);
         
         // line separator definition
         $rowDelimiter = "\r\n";
@@ -425,10 +427,10 @@ class plgSystemCfi extends CMSPlugin
     {
         $db = Factory::getDbo();
         $query = $db->getQuery(true)
-            ->select('`id`')
-            ->from('`#__categories`')
-            ->where('`extension` = "com_content"')
-            ->order('`id`');
+            ->select('id')
+            ->from('#__categories')
+            ->where('extension = "com_content"')
+            ->order('id');
         $db->setQuery($query);
         try {
             return $db->loadColumn();
@@ -456,11 +458,11 @@ class plgSystemCfi extends CMSPlugin
         // get articles
         $db = Factory::getDbo();
         $query = $db->getQuery(true)
-            ->select('`id`, `title`, `language`, `introtext`, `fulltext`')
-            ->from('`#__content`')
-            ->where('`state` >= 0')
-            ->where('`catid` = ' . $catid)
-            ->order('`id`');
+            ->select('id, title, language, introtext, \'fulltext\'')
+            ->from('#__content')
+            ->where('state >= 0')
+            ->where('catid = ' . (int)$catid)
+            ->order('id');
         $db->setQuery($query);
         try {
             $articles = $db->loadObjectList();
@@ -479,7 +481,7 @@ class plgSystemCfi extends CMSPlugin
         // file handler
         $this->_file = Path::clean(Factory::getConfig()->get('tmp_path') . '/cfi_export_' . date('Y-m-d-H-i-s') . '.csv');
 		if (($fileHandle = fopen($this->_file, 'w')) === false) {
-            $data['result'] = Text::_('PLG_CFI_EXPORT_FILE_CREATE');
+            $data['result'] = Text::_('PLG_CFI_EXPORTfile_CREATE');
             Log::add(json_encode($data), Log::ERROR);
             $this->_printJson($data['result']);
         }
@@ -555,7 +557,7 @@ class plgSystemCfi extends CMSPlugin
         $data['result'] = Text::_('PLG_CFI_EXPORT_SUCCESS');
         $date['file'] = $this->_file;
         Log::add(json_encode($data), Log::INFO);
-        $this->_printJson($data['result'], true, ['f' => base64_encode($this->_file)]);
+        $this->_printJson($data['result'], true, ['f' => urlencode(pathinfo($this->_file, PATHINFO_BASENAME))]);
 
         exit;
     }

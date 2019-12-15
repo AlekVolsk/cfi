@@ -132,3 +132,8 @@
     border-top: none;
     border-bottom: .5px solid var(--cfi-hr);
 }
+
+#js-cfi-exportlabel {
+    margin-bottom: 0;
+    cursor: default;
+}

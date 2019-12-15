@@ -12,14 +12,6 @@ use Joomla\CMS\Language\Text;
 
 class plgSystemCfiInstallerScript
 {
-    /**
-     * preflight
-     *
-     * @param  mixed $type
-     * @param  mixed $parent
-     *
-     * @return void
-     */
     function preflight($type, $parent)
     {
         if (strtolower($type) === 'uninstall') {
@@ -52,14 +44,6 @@ class plgSystemCfiInstallerScript
         }
     }
 
-    /**
-     * postflight
-     *
-     * @param  mixed $type
-     * @param  mixed $parent
-     *
-     * @return void
-     */
     public function postflight($type, $parent)
     {
         if (strtolower($type) === 'uninstall') {
@@ -68,11 +52,11 @@ class plgSystemCfiInstallerScript
         
         $db = Factory::getDbo();
         $query = $db->getQuery(true)
-            ->update('`#__extensions`')
-            ->set('`enabled` = 1')
-            ->where('`element` = ' . $db->quote('cfi'))
-            ->where('`type` = ' . $db->quote('plugin'))
-            ->where('`folder` = ' . $db->quote('system'));
+            ->update('#__extensions')
+            ->set('enabled = 1')
+            ->where('element = ' . $db->quote('cfi'))
+            ->where('type = ' . $db->quote('plugin'))
+            ->where('folder = ' . $db->quote('system'));
         $db->setQuery($query);
         try {
             $db->execute();

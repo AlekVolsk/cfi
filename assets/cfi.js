@@ -141,20 +141,25 @@ document.addEventListener('DOMContentLoaded', function () {
         cfiDropArea.style.pointerEvents = 'none';
         cfiExportArea.style.pointerEvents = 'none';
         var url = location.protocol + '//' + location.host + Joomla.getOptions('system.paths')['base'] +
-            '/index.php?option=com_ajax&group=system&plugin=cfi&method=post&format=raw';
+            '/index.php?option=com_ajax&group=system&plugin=cfi';
         var xhr = new XMLHttpRequest();
         var formData = new FormData();
-        xhr.open('POST', url, true);
+        xhr.open('POST', url + '&format=json', true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('X-CSRF-Token', Joomla.getOptions('csrf.token'));
 
         xhr.addEventListener('readystatechange', function (e) {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 try {
-                    response = JSON.parse(xhr.response);
-                    cfiLabelExport.classList.add('text-success');
-                    cfiLabelExport.innerHTML = cfiBtnExport.dataset.success;
-                    window.location = url + '&cfistate=download&f=' + response.f + '&' + Joomla.getOptions('csrf.token') + '=1';
+                    var response = JSON.parse(xhr.response);
+                    if (response.result) {
+                        cfiLabelExport.classList.add('text-success');
+                        cfiLabelExport.innerHTML = cfiBtnExport.dataset.success;
+                        window.location = url + '&format=raw&cfistate=download&f=' + response.f + '&' + Joomla.getOptions('csrf.token') + '=1';
+                    } else {
+                        cfiLabelExport.classList.add('text-error');
+                        cfiLabelExport.innerHTML = cfiBtnExport.dataset.error + '<br>' + response.message;
+                    }
                 } catch (e) {
                     cfiLabelExport.classList.add('text-error');
                     cfiLabelExport.innerHTML = cfiBtnExport.dataset.error + '<br>' + xhr.response;
