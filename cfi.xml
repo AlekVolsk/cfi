@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="3.7" type="plugin" group="system" method="upgrade">
     <name>PLG_CFI</name>
-    <version>1.0.3</version>
-    <creationDate>December 2019</creationDate>
+    <version>1.0.4</version>
+    <creationDate>January 2020</creationDate>
     <author>Aleksey A. Morozov</author>
     <authorEmail>alekvolsk@yandex.ru</authorEmail>
     <authorUrl>https://alekvolsk.pw</authorUrl>
-    <copyright>© 2019 Aleksey A. Morozov. All right reserved.</copyright>
+    <copyright>© 2020 Aleksey A. Morozov. All right reserved.</copyright>
     <license>GNU General Public License version 3 or later; see http://www.gnu.org/licenses/gpl-3.0.txt</license>
     <description>PLG_CFI_XML_DESCRIPTION</description>
     <scriptfile>script.php</scriptfile>
