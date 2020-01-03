@@ -58,3 +58,7 @@ For standard additional Joomla fields of a list type that return the structure o
 The data of additional fields are written to the database by direct queries and are not subjected to any processing. Due to the fact that this data may contain HTML markup tags, json strings or other string constructs containing specialized characters, **data is not shielded!** Please ensure the safety of the imported data at the stage of generating the file for importing data into Joomla .
 
 **The plugin developer is not responsible for the incorrect content of the imported files, which may damage your site**.
+
+---
+
+More complete documentation here: <https://joomline.org/docs/80-documentation-extension-cfi.html>
