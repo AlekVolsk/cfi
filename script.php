@@ -2,7 +2,7 @@
 /**
  * @package     Joomla.Plugin
  * @subpackage  System.cfi
- * @copyright   Copyright (C) 2019 Aleksey A. Morozov. All rights reserved.
+ * @copyright   Copyright (C) Aleksey A. Morozov. All rights reserved.
  * @license     GNU General Public License version 3 or later; see http://www.gnu.org/licenses/gpl-3.0.txt
  */
 
@@ -18,11 +18,11 @@ class plgSystemCfiInstallerScript
             return true;
         }
 
-		$minJoomlaVersion = $parent->get('manifest')->attributes()->version[0];
+        $minJoomlaVersion = $parent->get('manifest')->attributes()->version[0];
 
-		if (!class_exists('Joomla\CMS\Version')) {
-			JFactory::getApplication()->enqueueMessage(JText::sprintf('J_JOOMLA_COMPATIBLE', JText::_($parent->get('manifest')->name[0]), $minJoomlaVersion), 'error');
-			return false;
+        if (!class_exists('Joomla\CMS\Version')) {
+            JFactory::getApplication()->enqueueMessage(JText::sprintf('J_JOOMLA_COMPATIBLE', JText::_($parent->get('manifest')->name[0]), $minJoomlaVersion), 'error');
+            return false;
         }
         
         $msg = '';

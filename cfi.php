@@ -2,7 +2,7 @@
 /**
  * @package     Joomla.Plugin
  * @subpackage  System.cfi
- * @copyright   Copyright (C) 2019 Aleksey A. Morozov. All rights reserved.
+ * @copyright   Copyright (C) Aleksey A. Morozov. All rights reserved.
  * @license     GNU General Public License version 3 or later; see http://www.gnu.org/licenses/gpl-3.0.txt
  */
 
@@ -25,7 +25,7 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 
 class plgSystemCfi extends CMSPlugin
 {
-    const BOM = "\xEF" . "\xBB" . "\xBF"; // UTF BOM signature
+    private $BOM = "\xEF" . "\xBB" . "\xBF"; // UTF BOM signature
     
     private $_app;
     private $_doc;
@@ -256,7 +256,7 @@ class plgSystemCfi extends CMSPlugin
         $content = trim(file_get_contents($this->_file));
         
         // convert to UTF-8
-        if ($this->_app->input->get('cficonvert', false)) {
+        if ((bool) $this->_app->input->get('cficonvert', false)) {
             $content = mb_convert_encoding($content, 'UTF-8', $this->_cp);
         }
 
@@ -458,7 +458,7 @@ class plgSystemCfi extends CMSPlugin
         // get articles
         $db = Factory::getDbo();
         $query = $db->getQuery(true)
-            ->select('id, title, language, introtext, \'fulltext\'')
+            ->select('id, title, language, introtext, `fulltext`')
             ->from('#__content')
             ->where('state >= 0')
             ->where('catid = ' . (int)$catid)
@@ -480,7 +480,7 @@ class plgSystemCfi extends CMSPlugin
 
         // file handler
         $this->_file = Path::clean(Factory::getConfig()->get('tmp_path') . '/cfi_export_' . date('Y-m-d-H-i-s') . '.csv');
-		if (($fileHandle = fopen($this->_file, 'w')) === false) {
+        if (($fileHandle = fopen($this->_file, 'w')) === false) {
             $data['result'] = Text::_('PLG_CFI_EXPORTfile_CREATE');
             Log::add(json_encode($data), Log::ERROR);
             $this->_printJson($data['result']);
@@ -529,7 +529,7 @@ class plgSystemCfi extends CMSPlugin
         unset($articles, $jsFields);
         
         // convert
-        if ($this->_app->input->get('cficonvert', false)) {
+        if ((bool) $this->_app->input->get('cficonvert', false)) {
             $contentIn = file_get_contents($this->_file);
             if ($contentIn !== false) {
                 $content = mb_convert_encoding($contentIn, $this->_cp, 'UTF-8');
@@ -562,24 +562,24 @@ class plgSystemCfi extends CMSPlugin
         exit;
     }
 
-	private function _fileDownload($file)
-	{
+    private function _fileDownload($file)
+    {
         set_time_limit(0);
-		if (file_exists($file)) {
-			if (ob_get_level()) {
-				ob_end_clean();
-			}
-			header('Content-Description: File Transfer');
-			header('Content-Type: text/csv');
-			header('Content-Disposition: attachment; filename=' . basename($file));
-			header('Content-Transfer-Encoding: binary');
-			header('Expires: 0');
-			header('Cache-Control: must-revalidate');
-			header('Pragma: public');
-			header('Content-Length: ' . filesize($file));
-			return (bool) readfile($file);
-		} else {
-			return false;
-		}
-	}
+        if (file_exists($file)) {
+            if (ob_get_level()) {
+                ob_end_clean();
+            }
+            header('Content-Description: File Transfer');
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename=' . basename($file));
+            header('Content-Transfer-Encoding: binary');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . filesize($file));
+            return (bool) readfile($file);
+        } else {
+            return false;
+        }
+    }
 }
