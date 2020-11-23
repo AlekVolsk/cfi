@@ -42,8 +42,8 @@ class plgSystemCfi extends CMSPlugin
         $this->_doc = Factory::getDocument();
         
         HTMLHelper::_('jquery.framework', false, null, false);
-        $this->_doc->addScript('/plugins/system/cfi/assets/cfi.js');
-        $this->_doc->addStylesheet('/plugins/system/cfi/assets/cfi.css');
+        $this->_doc->addScript(JURI::root(true) . '/plugins/system/cfi/assets/cfi.js');
+        $this->_doc->addStylesheet(JURI::root(true) . '/plugins/system/cfi/assets/cfi.css');
         
         $user = Factory::getUser();
         $this->_user = $user->id . ':' . $user->username;
