@@ -18,20 +18,27 @@ class plgSystemCfiInstallerScript
             return true;
         }
 
-        $minJoomlaVersion = $parent->get('manifest')->attributes()->version[0];
+        $manifest = $parent->getManifest();
+        $name = $parent->getName();
+
+        $minJoomlaVersion = $manifest->attributes()->version[0];
 
         if (!class_exists('Joomla\CMS\Version')) {
-            JFactory::getApplication()->enqueueMessage(JText::sprintf('J_JOOMLA_COMPATIBLE', JText::_($parent->get('manifest')->name[0]), $minJoomlaVersion), 'error');
+            JFactory::getApplication()->enqueueMessage(JText::sprintf('J_JOOMLA_COMPATIBLE', JText::_($name), $minJoomlaVersion), 'error');
             return false;
         }
-        
+
         $msg = '';
         $ver = new Version();
-        $name = Text::_($parent->get('manifest')->name[0]);
-        $minPhpVersion = $parent->get('manifest')->php_minimum[0];
+        $name = Text::_($name);
+        $minPhpVersion = $manifest->php_minimum[0];
 
         if (version_compare($ver->getShortVersion(), $minJoomlaVersion, 'lt')) {
             $msg .= Text::sprintf('J_JOOMLA_COMPATIBLE', $name, $minJoomlaVersion);
+        }
+
+        if (version_compare($ver->getShortVersion(), '4.0', '>=')) {
+            $msg .= 'Joomla!4 is not compatible';
         }
 
         if (version_compare(phpversion(), $minPhpVersion, 'lt')) {
@@ -49,7 +56,7 @@ class plgSystemCfiInstallerScript
         if (strtolower($type) === 'uninstall') {
             return true;
         }
-        
+
         $db = Factory::getDbo();
         $query = $db->getQuery(true)
             ->update('#__extensions')
