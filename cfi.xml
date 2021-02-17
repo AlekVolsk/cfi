@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="3.7" type="plugin" group="system" method="upgrade">
     <name>PLG_CFI</name>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
     <creationDate>February 2021</creationDate>
     <author>Aleksey A. Morozov</author>
     <authorEmail>alekvolsk@yandex.ru</authorEmail>

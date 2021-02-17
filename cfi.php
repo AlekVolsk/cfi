@@ -43,8 +43,19 @@ class plgSystemCfi extends CMSPlugin
     public function __construct(&$subject, $config)
     {
         parent::__construct($subject, $config);
+
         $this->_app = Factory::getApplication('administrator');
         $this->_doc = Factory::getDocument();
+
+        if (!$this->_app->isClient('administrator')) {
+            return;
+        }
+
+        $option = $this->_app->input->get('option');
+        $view   = $this->_app->input->get('view');
+        if (!($option == 'com_content' && (in_array($view, ['articles', 'featured', ''])))) {
+            return;
+        }
 
         $this->_doc->addScript('/plugins/system/cfi/assets/cfi.js');
         $this->_doc->addStylesheet('/plugins/system/cfi/assets/cfi.css');
