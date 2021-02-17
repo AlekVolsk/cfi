@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         formData.append('cfifile', file);
         formData.append('cfistate', 'import');
-        formData.append('cficonvert', cfiCbConvert.checked);
+        formData.append('cficonvert', Number(cfiCbConvert.checked));
         formData.append(Joomla.getOptions('csrf.token'), '1');
         xhr.send(formData);
     }

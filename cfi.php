@@ -257,7 +257,8 @@ class plgSystemCfi extends CMSPlugin
         $content = trim(file_get_contents($this->_file));
 
         // convert to UTF-8
-        if ((bool) $this->_app->input->get('cficonvert', false)) {
+        $isConvert = (int) $this->_app->input->get('cficonvert', 0);
+        if ($isConvert > 0) {
             $content = mb_convert_encoding($content, 'UTF-8', $this->_cp);
         }
 
