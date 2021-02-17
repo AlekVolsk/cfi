@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
         cfiDropArea.addEventListener('drop', cfi_handleDrop, false);
 
         cfiDropInput.addEventListener('change', cfi_handleFiles, false);
-        
+
         cfiBtnExport.addEventListener('click', cfi_export, false);
     }
 
@@ -118,6 +118,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     }, 1000);
                 }
+            } else {
+                cfiDropArea.classList.remove('cfi-dropzone-highlight');
+                cfiDropArea.classList.add('alert-error');
+                cfiDropLabel.innerHTML = '<strong>' + xhr.status + '</strong><span>Look at the log</span>';
+                cfiDropArea.style.pointerEvents = 'auto';
+                cfiExportArea.style.pointerEvents = 'auto';
             }
         });
 
@@ -164,6 +170,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     cfiLabelExport.classList.add('text-error');
                     cfiLabelExport.innerHTML = cfiBtnExport.dataset.error + '<br>' + xhr.response;
                 }
+                cfiDropArea.style.pointerEvents = 'auto';
+                cfiExportArea.style.pointerEvents = 'auto';
+            } else {
+                cfiDropArea.classList.remove('cfi-dropzone-highlight');
+                cfiDropArea.classList.add('alert-error');
+                cfiLabelExport.innerHTML = '<strong>' + xhr.status + '</strong><span>Look at the log</span>';
                 cfiDropArea.style.pointerEvents = 'auto';
                 cfiExportArea.style.pointerEvents = 'auto';
             }

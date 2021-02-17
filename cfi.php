@@ -13,7 +13,6 @@ use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Filesystem\Path;
-use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Layout\FileLayout;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Log\Log;
@@ -28,6 +27,7 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 class plgSystemCfi extends CMSPlugin
 {
     private $BOM = "\xEF\xBB\xBF"; // UTF BOM signature
+    private $BOM_CP = "п»ї"; // UTF BOM signature
 
     private $_app;
     private $_doc;
@@ -43,8 +43,8 @@ class plgSystemCfi extends CMSPlugin
         $this->_app = Factory::getApplication('administrator');
         $this->_doc = Factory::getDocument();
 
-        $this->_doc->addScript(URI::root(true) . '/plugins/system/cfi/assets/cfi.js');
-        $this->_doc->addStylesheet(URI::root(true) . '/plugins/system/cfi/assets/cfi.css');
+        $this->_doc->addScript('/plugins/system/cfi/assets/cfi.js');
+        $this->_doc->addStylesheet('/plugins/system/cfi/assets/cfi.css');
 
         $user = Factory::getUser();
         $this->_user = $user->id . ':' . $user->username;
@@ -150,7 +150,7 @@ class plgSystemCfi extends CMSPlugin
 
     public function onAjaxCfi()
     {
-        Log::addLogger(['textfile' => 'cfi.php', 'text_entry_format' => "{DATETIME}\t{PRIORITY}\t{MESSAGE}"], Log::ALL);
+        Log::addLogger(['text_file' => 'cfi.php', 'text_entry_format' => "{DATETIME}\t{PRIORITY}\t{MESSAGE}"], Log::ALL);
 
         $state = $this->_app->input->get('cfistate', '');
 
@@ -262,7 +262,7 @@ class plgSystemCfi extends CMSPlugin
         }
 
         // unset utf-8 bom
-        $content = str_replace($this->BOM, '', $content);
+        $content = str_replace([$this->BOM, $this->BOM_CP], '', $content);
 
         // line separator definition
         $rowDelimiter = "\r\n";
@@ -283,6 +283,7 @@ class plgSystemCfi extends CMSPlugin
 
         // get columns
         $columns = str_getcsv($lines[0], ';');
+
         if ((array_search('articleid', $columns) === false) || (array_search('articletitle', $columns) === false)) {
             $data['result'] = Text::_('PLG_CFI_IMPORT_NO_COLUMN');
             Log::add(json_encode($data), Log::ERROR);
@@ -347,6 +348,7 @@ class plgSystemCfi extends CMSPlugin
             // get article instance
             $model = BaseDatabaseModel::getInstance('Article', 'ContentModel');
 
+            $article = [];
             if ($articleData['articleid'] > 0) {
                 // load existing article item
                 $article = $model->getItem($articleData['articleid']);
@@ -360,7 +362,9 @@ class plgSystemCfi extends CMSPlugin
 
                 $article = (array)$article;
                 unset($article[array_key_first($article)]);
-                $article['tags'] = explode(',', $article['tags']->tags);
+                if (isset($article['tags'])) {
+                    $article['tags'] = explode(',', $article['tags']->tags);
+                }
 
                 // set new data on existing article item
                 $article['title'] = $articleData['articletitle'];
@@ -370,7 +374,7 @@ class plgSystemCfi extends CMSPlugin
                 //set data on new article item
                 $article['id'] = 0;
                 $article['title'] = $articleData['articletitle'];
-                $article['alias'] = OutputFilter::stringURLSafe($article->title);
+                $article['alias'] = OutputFilter::stringURLSafe($article['title']);
                 $article['introtext'] = $articleData['articleintrotext'];
                 $article['fulltext'] = $articleData['articlefulltext'];
                 $article['catid'] = $articleData['articlecat'];
@@ -379,10 +383,10 @@ class plgSystemCfi extends CMSPlugin
                 $article['created_by'] = explode(':', $this->_user)[0];
                 $article['state'] = 1;
                 $article['access'] = $this->_app->get('access', 1);
-                $article['metadata'] = json_decode('{"robots":"","author":"","rights":"","xreference":""}');
-                $article['images'] = json_decode('{"image_intro":"","float_intro":"","image_intro_alt":"","image_intro_caption":"","image_fulltext":"","float_fulltext":"","image_fulltext_alt":"","image_fulltext_caption":""}');
-                $article['urls'] = json_decode('{"urla":false,"urlatext":"","targeta":"","urlb":false,"urlbtext":"","targetb":"","urlc":false,"urlctext":"","targetc":""}');
-                $article['attribs'] = json_decode('{"article_layout":"","show_title":"","link_titles":"","show_tags":"","show_intro":"","info_block_position":"","info_block_show_title":"","show_category":"","link_category":"","show_parent_category":"","link_parent_category":"","show_associations":"","show_author":"","link_author":"","show_create_date":"","show_modify_date":"","show_publish_date":"","show_item_navigation":"","show_icons":"","show_print_icon":"","show_email_icon":"","show_vote":"","show_hits":"","show_noauth":"","urls_position":"","alternative_readmore":"","article_page_title":"","show_publishing_options":"","show_article_options":"","show_urls_images_backend":"","show_urls_images_frontend":""}');
+                $article['metadata'] = json_decode('{"robots":"","author":"","rights":"","xreference":""}', true);
+                $article['images'] = json_decode('{"image_intro":"","float_intro":"","image_intro_alt":"","image_intro_caption":"","image_fulltext":"","float_fulltext":"","image_fulltext_alt":"","image_fulltext_caption":""}', true);
+                $article['urls'] = json_decode('{"urla":false,"urlatext":"","targeta":"","urlb":false,"urlbtext":"","targetb":"","urlc":false,"urlctext":"","targetc":""}', true);
+                $article['attribs'] = json_decode('{"article_layout":"","show_title":"","link_titles":"","show_tags":"","show_intro":"","info_block_position":"","info_block_show_title":"","show_category":"","link_category":"","show_parent_category":"","link_parent_category":"","show_associations":"","show_author":"","link_author":"","show_create_date":"","show_modify_date":"","show_publish_date":"","show_item_navigation":"","show_icons":"","show_print_icon":"","show_email_icon":"","show_vote":"","show_hits":"","show_noauth":"","urls_position":"","alternative_readmore":"","article_page_title":"","show_publishing_options":"","show_article_options":"","show_urls_images_backend":"","show_urls_images_frontend":""}', true);
             }
 
             // save article item

@@ -74,6 +74,7 @@
 
 .cfi-dropzone {
     position: relative;
+    display: flex;
     min-height: 140px;
     border-radius: 3px;
     border: 2px dashed var(--cfi-border);
@@ -90,12 +91,8 @@
 }
 
 .cfi-input-label {
-    box-sizing: border-box;;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    box-sizing: border-box;
+    flex: 1;
     margin-bottom: 0;
     padding: 20px;
     display: flex;
