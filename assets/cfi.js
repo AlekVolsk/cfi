@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 cfiDropArea.classList.remove('cfi-dropzone-highlight');
                 cfiDropArea.classList.add('alert-error');
-                cfiDropLabel.innerHTML = '<strong>' + xhr.status + '</strong><span>Look at the log</span>';
+                cfiDropLabel.innerHTML = '<strong>' + xhr.status + '</strong><span>Unknown error, look at the log</span>';
                 cfiDropArea.style.pointerEvents = 'auto';
                 cfiExportArea.style.pointerEvents = 'auto';
             }
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 cfiDropArea.classList.remove('cfi-dropzone-highlight');
                 cfiDropArea.classList.add('alert-error');
-                cfiLabelExport.innerHTML = '<strong>' + xhr.status + '</strong><span>Look at the log</span>';
+                cfiLabelExport.innerHTML = '<strong>' + xhr.status + '</strong><span>Unknown error, look at the log</span>';
                 cfiDropArea.style.pointerEvents = 'auto';
                 cfiExportArea.style.pointerEvents = 'auto';
             }

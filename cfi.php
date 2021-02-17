@@ -26,8 +26,11 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 
 class plgSystemCfi extends CMSPlugin
 {
-    private $BOM = "\xEF\xBB\xBF"; // UTF BOM signature
-    private $BOM_CP = "п»ї"; // UTF BOM signature
+    // UTF BOM signature
+    private $BOM = [
+        "\xEF\xBB\xBF", // UTF-8
+        "п»ї" // UTF-8 OO
+    ];
 
     private $_app;
     private $_doc;
@@ -263,7 +266,7 @@ class plgSystemCfi extends CMSPlugin
         }
 
         // unset utf-8 bom
-        $content = str_replace([$this->BOM, $this->BOM_CP], '', $content);
+        $content = str_replace($this->BOM, '', $content);
 
         // line separator definition
         $rowDelimiter = "\r\n";
