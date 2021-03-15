@@ -10,6 +10,7 @@ use Joomla\Registry\Registry;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\CMS\URI\URI;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Filesystem\Path;
@@ -43,7 +44,11 @@ class plgSystemCfi extends CMSPlugin
     public function __construct(&$subject, $config)
     {
         parent::__construct($subject, $config);
+        $this->_initConstruct();
+    }
 
+    private function _initConstruct($ajax = false)
+    {
         $this->_app = Factory::getApplication('administrator');
         $this->_doc = Factory::getDocument();
 
@@ -51,14 +56,16 @@ class plgSystemCfi extends CMSPlugin
             return;
         }
 
-        $option = $this->_app->input->get('option');
-        $view   = $this->_app->input->get('view');
-        if (!($option == 'com_content' && (in_array($view, ['articles', 'featured', ''])))) {
-            return;
+        if (!$ajax) {
+            $option = $this->_app->input->get('option');
+            $view   = $this->_app->input->get('view');
+            if (!($option == 'com_content' && (in_array($view, ['articles', 'featured', ''])))) {
+                return;
+            }
+        } else {
+            $this->_doc->addScript(URI::root(true) . '/plugins/system/cfi/assets/cfi.js');
+            $this->_doc->addStylesheet(URI::root(true) . '/plugins/system/cfi/assets/cfi.css');
         }
-
-        $this->_doc->addScript('/plugins/system/cfi/assets/cfi.js');
-        $this->_doc->addStylesheet('/plugins/system/cfi/assets/cfi.css');
 
         $user = Factory::getUser();
         $this->_user = $user->id . ':' . $user->username;
@@ -166,6 +173,8 @@ class plgSystemCfi extends CMSPlugin
     {
         Log::addLogger(['text_file' => 'cfi.php', 'text_entry_format' => "{DATETIME}\t{PRIORITY}\t{MESSAGE}"], Log::ALL);
 
+        $this->_initConstruct(true);
+
         $state = $this->_app->input->get('cfistate', '');
 
         if (!Session::checkToken($state == 'download' ? 'get' : 'post')) {
@@ -272,6 +281,7 @@ class plgSystemCfi extends CMSPlugin
 
         // convert to UTF-8
         $isConvert = (int) $this->_app->input->get('cficonvert', 0);
+
         if ($isConvert > 0) {
             $content = mb_convert_encoding($content, 'UTF-8', $this->_cp);
         }
@@ -326,9 +336,9 @@ class plgSystemCfi extends CMSPlugin
 
         Table::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_content/tables/');
         Form::addFormPath(JPATH_ADMINISTRATOR . '/components/com_content/models/forms');
-        Form::addFormPath(JPATH_ADMINISTRATOR . '/components/com_content/model/form');
+        //Form::addFormPath(JPATH_ADMINISTRATOR . '/components/com_content/model/form');
         Form::addFieldPath(JPATH_ADMINISTRATOR . '/components/com_content/models/fields');
-        Form::addFieldPath(JPATH_ADMINISTRATOR . '/components/com_content/model/field');
+        //Form::addFieldPath(JPATH_ADMINISTRATOR . '/components/com_content/model/field');
 
         set_time_limit(0);
 
@@ -366,7 +376,9 @@ class plgSystemCfi extends CMSPlugin
             $article = [];
             if ($articleData['articleid'] > 0) {
                 // load existing article item
-                $article = $model->getItem($articleData['articleid']);
+                //savefile("d:\cfi_1.txt", $model);
+                $article = $model->getItem((int)$articleData['articleid']);
+                //savefile("d:\cfi_2.txt", $article);
 
                 if (!$article) {
                     unset($article);

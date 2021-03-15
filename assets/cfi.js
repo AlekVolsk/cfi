@@ -94,36 +94,38 @@ document.addEventListener('DOMContentLoaded', function () {
         xhr.setRequestHeader('X-CSRF-Token', Joomla.getOptions('csrf.token'));
 
         xhr.addEventListener('readystatechange', function (e) {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                var response = false;
-                try {
-                    response = JSON.parse(xhr.response);
-                    cfiDropArea.classList.remove('cfi-dropzone-highlight');
-                    cfiDropArea.classList.add('alert-' + (response.result ? 'success' : 'error'));
-                    cfiDropLabel.innerHTML = '<strong>' + (response.result ? cfiDropArea.dataset.success : cfiDropArea.dataset.error) + '</strong><br>' + response.message;
-                } catch (e) {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    var response = false;
+                    try {
+                        response = JSON.parse(xhr.response);
+                        cfiDropArea.classList.remove('cfi-dropzone-highlight');
+                        cfiDropArea.classList.add('alert-' + (response.result ? 'success' : 'error'));
+                        cfiDropLabel.innerHTML = '<strong>' + (response.result ? cfiDropArea.dataset.success : cfiDropArea.dataset.error) + '</strong><br>' + response.message;
+                    } catch (e) {
+                        cfiDropArea.classList.remove('cfi-dropzone-highlight');
+                        cfiDropArea.classList.add('alert-error');
+                        cfiDropLabel.innerHTML = '<strong>' + cfiDropArea.dataset.error + '</strong><span>' + xhr.response + '</span>';
+                    }
+                    cfiDropArea.style.pointerEvents = 'auto';
+                    cfiExportArea.style.pointerEvents = 'auto';
+                    if (response && response.result) {
+                        var t = 10;
+                        setInterval(function () {
+                            t--;
+                            document.getElementById('cfi-result-counter').innerText = t;
+                            if (!t) {
+                                location.reload();
+                            }
+                        }, 1000);
+                    }
+                } else {
                     cfiDropArea.classList.remove('cfi-dropzone-highlight');
                     cfiDropArea.classList.add('alert-error');
-                    cfiDropLabel.innerHTML = '<strong>' + cfiDropArea.dataset.error + '</strong><span>' + xhr.response + '</span>';
+                    cfiDropLabel.innerHTML = '<strong>' + xhr.status + '</strong><span>Unknown error, look at the log</span>';
+                    cfiDropArea.style.pointerEvents = 'auto';
+                    cfiExportArea.style.pointerEvents = 'auto';
                 }
-                cfiDropArea.style.pointerEvents = 'auto';
-                cfiExportArea.style.pointerEvents = 'auto';
-                if (response && response.result) {
-                    var t = 10;
-                    setInterval(function () {
-                        t--;
-                        document.getElementById('cfi-result-counter').innerText = t;
-                        if (!t) {
-                            location.reload();
-                        }
-                    }, 1000);
-                }
-            } else {
-                cfiDropArea.classList.remove('cfi-dropzone-highlight');
-                cfiDropArea.classList.add('alert-error');
-                cfiDropLabel.innerHTML = '<strong>' + xhr.status + '</strong><span>Unknown error, look at the log</span>';
-                cfiDropArea.style.pointerEvents = 'auto';
-                cfiExportArea.style.pointerEvents = 'auto';
             }
         });
 
@@ -155,29 +157,31 @@ document.addEventListener('DOMContentLoaded', function () {
         xhr.setRequestHeader('X-CSRF-Token', Joomla.getOptions('csrf.token'));
 
         xhr.addEventListener('readystatechange', function (e) {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                try {
-                    var response = JSON.parse(xhr.response);
-                    if (response.result) {
-                        cfiLabelExport.classList.add('text-success');
-                        cfiLabelExport.innerHTML = cfiBtnExport.dataset.success;
-                        window.location = url + '&format=raw&cfistate=download&f=' + response.f + '&' + Joomla.getOptions('csrf.token') + '=1';
-                    } else {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    try {
+                        var response = JSON.parse(xhr.response);
+                        if (response.result) {
+                            cfiLabelExport.classList.add('text-success');
+                            cfiLabelExport.innerHTML = cfiBtnExport.dataset.success;
+                            window.location = url + '&format=raw&cfistate=download&f=' + response.f + '&' + Joomla.getOptions('csrf.token') + '=1';
+                        } else {
+                            cfiLabelExport.classList.add('text-error');
+                            cfiLabelExport.innerHTML = cfiBtnExport.dataset.error + '<br>' + response.message;
+                        }
+                    } catch (e) {
                         cfiLabelExport.classList.add('text-error');
-                        cfiLabelExport.innerHTML = cfiBtnExport.dataset.error + '<br>' + response.message;
+                        cfiLabelExport.innerHTML = cfiBtnExport.dataset.error + '<br>' + xhr.response;
                     }
-                } catch (e) {
-                    cfiLabelExport.classList.add('text-error');
-                    cfiLabelExport.innerHTML = cfiBtnExport.dataset.error + '<br>' + xhr.response;
+                    cfiDropArea.style.pointerEvents = 'auto';
+                    cfiExportArea.style.pointerEvents = 'auto';
+                } else {
+                    cfiDropArea.classList.remove('cfi-dropzone-highlight');
+                    cfiDropArea.classList.add('alert-error');
+                    cfiLabelExport.innerHTML = '<strong>' + xhr.status + '</strong><span>Unknown error, look at the log</span>';
+                    cfiDropArea.style.pointerEvents = 'auto';
+                    cfiExportArea.style.pointerEvents = 'auto';
                 }
-                cfiDropArea.style.pointerEvents = 'auto';
-                cfiExportArea.style.pointerEvents = 'auto';
-            } else {
-                cfiDropArea.classList.remove('cfi-dropzone-highlight');
-                cfiDropArea.classList.add('alert-error');
-                cfiLabelExport.innerHTML = '<strong>' + xhr.status + '</strong><span>Unknown error, look at the log</span>';
-                cfiDropArea.style.pointerEvents = 'auto';
-                cfiExportArea.style.pointerEvents = 'auto';
             }
         });
 
