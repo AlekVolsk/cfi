@@ -430,6 +430,9 @@ class plgSystemCfi extends CMSPlugin
                 $inserts++;
             }
 
+            // reload article from model
+	        $article = (array) $model->getItem();
+
             // get article custom fields
             $jsFields = FieldsHelper::getFields('com_content.article', $article, true);
             foreach($jsFields as $key => $jsField) {
