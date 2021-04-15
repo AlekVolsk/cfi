@@ -56,7 +56,7 @@ class plgSystemCfi extends CMSPlugin
             return;
         }
 
-        if (!$ajax) {
+        if ($ajax) {
             $option = $this->_app->input->get('option');
             $view   = $this->_app->input->get('view');
             if (!($option == 'com_content' && (in_array($view, ['articles', 'featured', ''])))) {
@@ -336,9 +336,7 @@ class plgSystemCfi extends CMSPlugin
 
         Table::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_content/tables/');
         Form::addFormPath(JPATH_ADMINISTRATOR . '/components/com_content/models/forms');
-        //Form::addFormPath(JPATH_ADMINISTRATOR . '/components/com_content/model/form');
         Form::addFieldPath(JPATH_ADMINISTRATOR . '/components/com_content/models/fields');
-        //Form::addFieldPath(JPATH_ADMINISTRATOR . '/components/com_content/model/field');
 
         set_time_limit(0);
 
@@ -348,7 +346,7 @@ class plgSystemCfi extends CMSPlugin
 
             // check count columns
             if (count($fieldsData) != count($columns)) {
-                $errors[$strNum] = Text::_('PLG_CFI_IMPORT_COLUMN_EXCEPT');
+                $errors[$strNum + 1] = Text::_('PLG_CFI_IMPORT_COLUMN_EXCEPT');
                 $continues++;
                 continue;
             }
@@ -374,30 +372,31 @@ class plgSystemCfi extends CMSPlugin
             $model = BaseDatabaseModel::getInstance('Article', 'ContentModel');
 
             $article = [];
+            $isNewArticle = true;
+            $state = 1;
             if ($articleData['articleid'] > 0) {
-                // load existing article item
-                //savefile("d:\cfi_1.txt", $model);
                 $article = $model->getItem((int)$articleData['articleid']);
-                //savefile("d:\cfi_2.txt", $article);
 
-                if (!$article) {
+                if (!$article->id) {
                     unset($article);
-                    $errors[$strNum] = Text::sprintf('PLG_CFI_IMPORT_LOAD_ARTICLE', $articleData['articleid']);
-                    $continues++;
-                    continue;
-                }
+                    $state = 0;
+                    $errors[$strNum + 1] = Text::sprintf('PLG_CFI_IMPORT_LOAD_ARTICLE', $articleData['articleid']);
+                } else {
+                    $isNewArticle = false;
+                    $article = (array)$article;
+                    unset($article[array_key_first($article)]);
+                    if (isset($article['tags'])) {
+                        $article['tags'] = explode(',', $article['tags']->tags);
+                    }
 
-                $article = (array)$article;
-                unset($article[array_key_first($article)]);
-                if (isset($article['tags'])) {
-                    $article['tags'] = explode(',', $article['tags']->tags);
+                    // set new data on existing article item
+                    $article['title'] = $articleData['articletitle'];
+                    $article['introtext'] = $articleData['articleintrotext'];
+                    $article['fulltext'] = $articleData['articlefulltext'];
                 }
+            }
 
-                // set new data on existing article item
-                $article['title'] = $articleData['articletitle'];
-                $article['introtext'] = $articleData['articleintrotext'];
-                $article['fulltext'] = $articleData['articlefulltext'];
-            } else {
+            if ($isNewArticle) {
                 //set data on new article item
                 $article['id'] = 0;
                 $article['title'] = $articleData['articletitle'];
@@ -408,7 +407,7 @@ class plgSystemCfi extends CMSPlugin
                 $article['language'] = $articleData['articlelang'];
                 $article['created'] = Factory::getDate()->toSql();
                 $article['created_by'] = explode(':', $this->_user)[0];
-                $article['state'] = 1;
+                $article['state'] = $state;
                 $article['access'] = $this->_app->get('access', 1);
                 $article['metadata'] = json_decode('{"robots":"","author":"","rights":"","xreference":""}', true);
                 $article['images'] = json_decode('{"image_intro":"","float_intro":"","image_intro_alt":"","image_intro_caption":"","image_fulltext":"","float_fulltext":"","image_fulltext_alt":"","image_fulltext_caption":""}', true);
@@ -419,19 +418,27 @@ class plgSystemCfi extends CMSPlugin
             // save article item
             if ($model->save($article) === false) {
                 unset($article);
-                $errors[$strNum] = Text::_('PLG_CFI_IMPORT_SAVE_ARTICLE');
+                if (!empty($errors[$strNum + 1])) {
+                    $errors[$strNum + 1] .= '. ' . Text::_('PLG_CFI_IMPORT_SAVE_ARTICLE');
+                } else {
+                    $errors[$strNum + 1] = Text::_('PLG_CFI_IMPORT_SAVE_ARTICLE');
+                }
                 $continues++;
                 continue;
-            }
-
-            if ($articleData['articleid']) {
-                $updates++;
             } else {
-                $inserts++;
+                if (!empty($errors[$strNum + 1])) {
+                    $errors[$strNum + 1] .= '. ' . Text::_('PLG_CFI_IMPORT_SAVENEW_ARTICLE');
+                }
             }
 
-            // reload article from model
-	        $article = (array) $model->getItem();
+            if ($isNewArticle) {
+                $inserts++;
+
+                // get ID for the new article
+                $article['id'] = $model->getState($model->getName() . '.id');
+            } else {
+                $updates++;
+            }
 
             // get article custom fields
             $jsFields = FieldsHelper::getFields('com_content.article', $article, true);
@@ -456,7 +463,7 @@ class plgSystemCfi extends CMSPlugin
                 }
             }
             if ($fieldsErrors) {
-                $errors[$strNum] = Text::sprintf('PLG_CFI_IMPORT_SAVE_FIELDS', implode(', ', $fieldsErrors));
+                $errors[$strNum + 1] = Text::sprintf('PLG_CFI_IMPORT_SAVE_FIELDS', implode(', ', $fieldsErrors));
             }
 
             // destroy article instance
