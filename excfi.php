@@ -1,7 +1,7 @@
 <?php defined('_JEXEC') or die;
 /**
  * @package     Joomla.Plugin
- * @subpackage  System.cfi
+ * @subpackage  System.excfi
  * @copyright   Copyright (C) Aleksey A. Morozov. All rights reserved.
  * @license     GNU General Public License version 3 or later; see http://www.gnu.org/licenses/gpl-3.0.txt
  */
@@ -25,7 +25,7 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 
 \JLoader::register('FieldsHelper', JPATH_ADMINISTRATOR . '/components/com_fields/helpers/fields.php');
 
-class plgSystemCfi extends CMSPlugin
+class plgSystemExCfi extends CMSPlugin
 {
     // UTF BOM signature
     private $BOM = [
@@ -63,8 +63,8 @@ class plgSystemCfi extends CMSPlugin
                 return;
             }
         } else {
-            $this->_doc->addScript(URI::root(true) . '/plugins/system/cfi/assets/cfi.js');
-            $this->_doc->addStylesheet(URI::root(true) . '/plugins/system/cfi/assets/cfi.css');
+            $this->_doc->addScript(URI::root(true) . '/plugins/system/excfi/assets/excfi.js');
+            $this->_doc->addStylesheet(URI::root(true) . '/plugins/system/excfi/assets/excfi.css');
         }
 
         $user = Factory::getUser();
@@ -108,8 +108,8 @@ class plgSystemCfi extends CMSPlugin
             return;
         }
 
-        $toolbar = new FileLayout('toolbar', Path::clean(JPATH_PLUGINS . '/system/cfi/layouts'));
-        ToolBar::getInstance('toolbar')->appendButton('Custom', $toolbar->render([]), 'cfi');
+        $toolbar = new FileLayout('toolbar', Path::clean(JPATH_PLUGINS . '/system/excfi/layouts'));
+        ToolBar::getInstance('toolbar')->appendButton('Custom', $toolbar->render([]), 'excfi');
 
         return true;
     }
@@ -151,7 +151,7 @@ class plgSystemCfi extends CMSPlugin
             $categories = [];
         }
 
-        $well = new FileLayout('well', Path::clean(JPATH_PLUGINS . '/system/cfi/layouts'));
+        $well = new FileLayout('well', Path::clean(JPATH_PLUGINS . '/system/excfi/layouts'));
         $matches = [];
         preg_match('#id="j-main-container" (\w+)(.*?)>#i', $content, $matches);
         if ($matches && $matches[0]) {
@@ -169,13 +169,13 @@ class plgSystemCfi extends CMSPlugin
         return;
     }
 
-    public function onAjaxCfi()
+    public function onAjaxExCfi()
     {
-        Log::addLogger(['text_file' => 'cfi.php', 'text_entry_format' => "{DATETIME}\t{PRIORITY}\t{MESSAGE}"], Log::ALL);
+        Log::addLogger(['text_file' => 'excfi.php', 'text_entry_format' => "{DATETIME}\t{PRIORITY}\t{MESSAGE}"], Log::ALL);
 
         $this->_initConstruct(true);
 
-        $state = $this->_app->input->get('cfistate', '');
+        $state = $this->_app->input->get('excfistate', '');
 
         if (!Session::checkToken($state == 'download' ? 'get' : 'post')) {
             $data = [
@@ -190,7 +190,7 @@ class plgSystemCfi extends CMSPlugin
         }
 
         if ($state == 'import') {
-            $this->_checkFile($this->_app->input->files->get('cfifile'));
+            $this->_checkFile($this->_app->input->files->get('excfifile'));
             $this->_importData();
         }
 
@@ -227,26 +227,26 @@ class plgSystemCfi extends CMSPlugin
         if (is_array($file) && count($file)) {
 
             if ($file['error'] != 0) {
-                $data['result'] = Text::_('PLG_CFIfile_ERROR');
+                $data['result'] = Text::_('PLG_EXCFIfile_ERROR');
                 Log::add(json_encode($data), Log::ERROR);
                 $this->_printJson($data['result']);
             }
 
             if (!$file['size']) {
-                $data['result'] = Text::_('PLG_CFIfile_SIZE');
+                $data['result'] = Text::_('PLG_EXCFIfile_SIZE');
                 Log::add(json_encode($data), Log::ERROR);
                 $this->_printJson($data['result']);
             }
 
             if (pathinfo($file['name'], PATHINFO_EXTENSION) !== 'csv') {
-                $data['result'] = Text::_('PLG_CFIfile_TYPE');
+                $data['result'] = Text::_('PLG_EXCFIfile_TYPE');
                 Log::add(json_encode($data), Log::ERROR);
                 $this->_printJson($data['result']);
             }
 
-            $this->_file = Path::clean(Factory::getConfig()->get('tmp_path') . '/cfi_' . date('Y-m-d-H-i-s') . '.csv');
+            $this->_file = Path::clean(Factory::getConfig()->get('tmp_path') . '/excfi_' . date('Y-m-d-H-i-s') . '.csv');
             if (!@move_uploaded_file($file['tmp_name'], $this->_file)) {
-                $data['result'] = Text::_('PLG_CFIfile_MOVE');
+                $data['result'] = Text::_('PLG_EXCFIfile_MOVE');
                 Log::add(json_encode($data), Log::ERROR);
                 $this->_printJson($data['result']);
             }
@@ -254,7 +254,7 @@ class plgSystemCfi extends CMSPlugin
             return true;
         }
 
-        $data['result'] = Text::_('PLG_CFIfile_NOTHING');
+        $data['result'] = Text::_('PLG_EXCFIfile_NOTHING');
         Log::add(json_encode($data), Log::ERROR);
         $this->_printJson($data['result']);
     }
@@ -271,7 +271,7 @@ class plgSystemCfi extends CMSPlugin
         // get categories
         $categories = $this->_getCategories();
         if (!$categories) {
-            $data['result'] = Text::_('PLG_CFI_IMPORT_GET_CATEGORIES');
+            $data['result'] = Text::_('PLG_EXCFI_IMPORT_GET_CATEGORIES');
             Log::add(json_encode($data), Log::ERROR);
             $this->_printJson($data['result']);
         }
@@ -280,7 +280,7 @@ class plgSystemCfi extends CMSPlugin
         $content = trim(file_get_contents($this->_file));
 
         // convert to UTF-8
-        $isConvert = (int) $this->_app->input->get('cficonvert', 0);
+        $isConvert = (int) $this->_app->input->get('excficonvert', 0);
 
         if ($isConvert > 0) {
             $content = mb_convert_encoding($content, 'UTF-8', $this->_cp);
@@ -301,7 +301,7 @@ class plgSystemCfi extends CMSPlugin
         $lines = array_map('trim', $lines);
 
         if (count($lines) < 2) {
-            $data['result'] = Text::_('PLG_CFI_IMPORT_EMPTY');
+            $data['result'] = Text::_('PLG_EXCFI_IMPORT_EMPTY');
             Log::add(json_encode($data), Log::ERROR);
             $this->_printJson($data['result']);
         }
@@ -310,7 +310,7 @@ class plgSystemCfi extends CMSPlugin
         $columns = str_getcsv($lines[0], ';');
 
         if ((array_search('articleid', $columns) === false) || (array_search('articletitle', $columns) === false)) {
-            $data['result'] = Text::_('PLG_CFI_IMPORT_NO_COLUMN');
+            $data['result'] = Text::_('PLG_EXCFI_IMPORT_NO_COLUMN');
             Log::add(json_encode($data), Log::ERROR);
             $this->_printJson($data['result']);
         }
@@ -346,7 +346,7 @@ class plgSystemCfi extends CMSPlugin
 
             // check count columns
             if (count($fieldsData) != count($columns)) {
-                $errors[$strNum + 1] = Text::_('PLG_CFI_IMPORT_COLUMN_EXCEPT');
+                $errors[$strNum + 1] = Text::_('PLG_EXCFI_IMPORT_COLUMN_EXCEPT');
                 $continues++;
                 continue;
             }
@@ -380,7 +380,7 @@ class plgSystemCfi extends CMSPlugin
                 if (!$article->id) {
                     unset($article);
                     $state = 0;
-                    $errors[$strNum + 1] = Text::sprintf('PLG_CFI_IMPORT_LOAD_ARTICLE', $articleData['articleid']);
+                    $errors[$strNum + 1] = Text::sprintf('PLG_EXCFI_IMPORT_LOAD_ARTICLE', $articleData['articleid']);
                 } else {
                     $isNewArticle = false;
                     $article = (array)$article;
@@ -419,15 +419,15 @@ class plgSystemCfi extends CMSPlugin
             if ($model->save($article) === false) {
                 unset($article);
                 if (!empty($errors[$strNum + 1])) {
-                    $errors[$strNum + 1] .= '. ' . Text::_('PLG_CFI_IMPORT_SAVE_ARTICLE');
+                    $errors[$strNum + 1] .= '. ' . Text::_('PLG_EXCFI_IMPORT_SAVE_ARTICLE');
                 } else {
-                    $errors[$strNum + 1] = Text::_('PLG_CFI_IMPORT_SAVE_ARTICLE');
+                    $errors[$strNum + 1] = Text::_('PLG_EXCFI_IMPORT_SAVE_ARTICLE');
                 }
                 $continues++;
                 continue;
             } else {
                 if (!empty($errors[$strNum + 1])) {
-                    $errors[$strNum + 1] .= '. ' . Text::_('PLG_CFI_IMPORT_SAVENEW_ARTICLE');
+                    $errors[$strNum + 1] .= '. ' . Text::_('PLG_EXCFI_IMPORT_SAVENEW_ARTICLE');
                 }
             }
 
@@ -463,7 +463,7 @@ class plgSystemCfi extends CMSPlugin
                 }
             }
             if ($fieldsErrors) {
-                $errors[$strNum + 1] = Text::sprintf('PLG_CFI_IMPORT_SAVE_FIELDS', implode(', ', $fieldsErrors));
+                $errors[$strNum + 1] = Text::sprintf('PLG_EXCFI_IMPORT_SAVE_FIELDS', implode(', ', $fieldsErrors));
             }
 
             // destroy article instance
@@ -471,7 +471,7 @@ class plgSystemCfi extends CMSPlugin
         }
 
         // show result
-        $data['result'] = Text::sprintf('PLG_CFI_RESULT', $inserts + $updates, $inserts, $updates) . ($errors ? '<br>' . Text::sprintf('PLG_CFI_RESULT_ERROR', $continues) : '');
+        $data['result'] = Text::sprintf('PLG_EXCFI_RESULT', $inserts + $updates, $inserts, $updates) . ($errors ? '<br>' . Text::sprintf('PLG_EXCFI_RESULT_ERROR', $continues) : '');
         if ($errors) {
             $data['errors'] = $errors;
         } else {
@@ -506,9 +506,9 @@ class plgSystemCfi extends CMSPlugin
         ];
 
         // get id category
-        $catid = (int)$this->_app->input->get('cficat', 0);
+        $catid = (int)$this->_app->input->get('excficat', 0);
         if (!$catid) {
-            $data['result'] = Text::_('PLG_CFI_EXPORT_NO_CATEGORY');
+            $data['result'] = Text::_('PLG_EXCFI_EXPORT_NO_CATEGORY');
             Log::add(json_encode($data), Log::ERROR);
             $this->_printJson($data['result']);
         }
@@ -525,21 +525,21 @@ class plgSystemCfi extends CMSPlugin
         try {
             $articles = $db->loadObjectList();
         } catch (Exception $e) {
-            $data['result'] = Text::_('PLG_CFI_EXPORT_GET_CONTENT');
+            $data['result'] = Text::_('PLG_EXCFI_EXPORT_GET_CONTENT');
             Log::add(json_encode($data), Log::ERROR);
             $this->_printJson($data['result']);
         }
 
         if (!$articles) {
-            $data['result'] = Text::_('PLG_CFI_EXPORT_EMPTY_CONTENT');
+            $data['result'] = Text::_('PLG_EXCFI_EXPORT_EMPTY_CONTENT');
             Log::add(json_encode($data), Log::ERROR);
             $this->_printJson($data['result']);
         }
 
         // file handler
-        $this->_file = Path::clean(Factory::getConfig()->get('tmp_path') . '/cfi_export_' . date('Y-m-d-H-i-s') . '.csv');
+        $this->_file = Path::clean(Factory::getConfig()->get('tmp_path') . '/excfi_export_' . date('Y-m-d-H-i-s') . '.csv');
         if (($fileHandle = fopen($this->_file, 'w')) === false) {
-            $data['result'] = Text::_('PLG_CFI_EXPORTfile_CREATE');
+            $data['result'] = Text::_('PLG_EXCFI_EXPORTfile_CREATE');
             Log::add(json_encode($data), Log::ERROR);
             $this->_printJson($data['result']);
         }
@@ -587,24 +587,24 @@ class plgSystemCfi extends CMSPlugin
         unset($articles, $jsFields);
 
         // convert
-        if ((bool) $this->_app->input->get('cficonvert', false)) {
+        if ((bool) $this->_app->input->get('excficonvert', false)) {
             $contentIn = file_get_contents($this->_file);
             if ($contentIn !== false) {
                 $content = mb_convert_encoding($contentIn, $this->_cp, 'UTF-8');
                 if (!$content) {
-                    $data['result'] = Text::_('PLG_CFI_EXPORT_ERROR_CONVERT');
+                    $data['result'] = Text::_('PLG_EXCFI_EXPORT_ERROR_CONVERT');
                     $date['file'] = $this->_file;
                     Log::add(json_encode($data), Log::ERROR);
                     $this->_printJson($data['result']);
                 }
                 if (file_put_contents($this->_file, $content) === false) {
-                    $data['result'] = Text::_('PLG_CFI_EXPORT_ERROR_AFTER_CONVERT');
+                    $data['result'] = Text::_('PLG_EXCFI_EXPORT_ERROR_AFTER_CONVERT');
                     $date['file'] = $this->_file;
                     Log::add(json_encode($data), Log::ERROR);
                     $this->_printJson($data['result']);
                 }
             } else {
-                $data['result'] = Text::_('PLG_CFI_EXPORT_ERROR_BEFORE_CONVERT');
+                $data['result'] = Text::_('PLG_EXCFI_EXPORT_ERROR_BEFORE_CONVERT');
                 $date['file'] = $this->_file;
                 Log::add(json_encode($data), Log::ERROR);
                 $this->_printJson($data['result']);
@@ -612,7 +612,7 @@ class plgSystemCfi extends CMSPlugin
         }
 
         // return result
-        $data['result'] = Text::_('PLG_CFI_EXPORT_SUCCESS');
+        $data['result'] = Text::_('PLG_EXCFI_EXPORT_SUCCESS');
         $date['file'] = $this->_file;
         Log::add(json_encode($data), Log::INFO);
         $this->_printJson($data['result'], true, ['f' => urlencode(pathinfo($this->_file, PATHINFO_BASENAME))]);

@@ -10,7 +10,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Version;
 use Joomla\CMS\Language\Text;
 
-class plgSystemCfiInstallerScript
+class plgSystemExCfiInstallerScript
 {
     function preflight($type, $parent)
     {
@@ -61,7 +61,7 @@ class plgSystemCfiInstallerScript
         $query = $db->getQuery(true)
             ->update('#__extensions')
             ->set('enabled = 1')
-            ->where('element = ' . $db->quote('cfi'))
+            ->where('element = ' . $db->quote('excfi'))
             ->where('type = ' . $db->quote('plugin'))
             ->where('folder = ' . $db->quote('system'));
         $db->setQuery($query);
