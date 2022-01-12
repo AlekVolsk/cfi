@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="3.7" type="plugin" group="system" method="upgrade">
 	<name>PLG_EXCFI</name>
-	<version>1.0.10</version>
+	<version>1.1.0</version>
 	<creationDate>December 2021</creationDate>
 	<author>Artem Vasilev (forked from Aleksey A. Morozov)</author>
 	<authorEmail>kern.usr@gmail.com</authorEmail>
