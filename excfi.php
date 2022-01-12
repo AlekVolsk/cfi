@@ -22,6 +22,7 @@ use Joomla\CMS\Table\Table;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Filter\OutputFilter;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\String\StringHelper;
 
 \JLoader::register('FieldsHelper', JPATH_ADMINISTRATOR . '/components/com_fields/helpers/fields.php');
 
@@ -393,6 +394,7 @@ class plgSystemExCfi extends CMSPlugin
                     $article['title'] = $articleData['articletitle'];
                     $article['introtext'] = $articleData['articleintrotext'];
                     $article['fulltext'] = $articleData['articlefulltext'];
+                    $article['catid'] = $articleData['articlecat'];
                 }
             }
 
@@ -400,7 +402,13 @@ class plgSystemExCfi extends CMSPlugin
                 //set data on new article item
                 $article['id'] = 0;
                 $article['title'] = $articleData['articletitle'];
-                $article['alias'] = OutputFilter::stringURLSafe($article['title']);
+
+                $alias = OutputFilter::stringURLSafe($article['title']);
+                while($this->checkAlias($alias, $articleData['articlecat']) === false)
+                {
+                    $alias = StringHelper::increment($alias, 'dash');
+                }
+                $article['alias'] = $alias;
                 $article['introtext'] = $articleData['articleintrotext'];
                 $article['fulltext'] = $articleData['articlefulltext'];
                 $article['catid'] = $articleData['articlecat'];
@@ -481,6 +489,15 @@ class plgSystemExCfi extends CMSPlugin
         $this->_printJson($data['result'], true);
     }
 
+    private function checkAlias($alias, $catId){
+        $table = JTable::getInstance('Content', 'JTable');
+        if ($table->load(array('alias' => $alias, 'catid' => $catId)))
+        {
+            return false;
+        }
+        return true;
+    }
+
     private function _getCategories()
     {
         $db = Factory::getDbo();
@@ -516,7 +533,7 @@ class plgSystemExCfi extends CMSPlugin
         // get articles
         $db = Factory::getDbo();
         $query = $db->getQuery(true)
-            ->select('id, title, language, introtext, `fulltext`')
+            ->select('id, title, language, introtext, `fulltext`, `attribs`, `metadesc`')
             ->from('#__content')
             ->where('state >= 0')
             ->where('catid = ' . (int)$catid)
@@ -551,7 +568,9 @@ class plgSystemExCfi extends CMSPlugin
             'articletitle',
             'articlelang',
             'articleintrotext',
-            'articlefulltext'
+            'articlefulltext',
+            'metadesc',
+            'metatitle'
         ];
         $jsFields = FieldsHelper::getFields('com_content.article', $articles[0], true);
         foreach($jsFields as $key => $jsField) {
@@ -568,6 +587,11 @@ class plgSystemExCfi extends CMSPlugin
             $outItem[] = str_replace(["\n", "\r"], '', $article->language);
             $outItem[] = str_replace(["\n", "\r"], '', $article->introtext);
             $outItem[] = str_replace(["\n", "\r"], '', $article->fulltext);
+
+            $attribs = json_decode($article->attribs, true);
+
+            $outItem[] = str_replace(["\n", "\r"], '', $article->metadesc);
+            $outItem[] = str_replace(["\n", "\r"], '', $attribs['article_page_title']);
 
             $jsFields = FieldsHelper::getFields('com_content.article', $article, true);
             foreach($jsFields as $jsField) {
@@ -593,19 +617,16 @@ class plgSystemExCfi extends CMSPlugin
                 $content = mb_convert_encoding($contentIn, $this->_cp, 'UTF-8');
                 if (!$content) {
                     $data['result'] = Text::_('PLG_EXCFI_EXPORT_ERROR_CONVERT');
-                    $date['file'] = $this->_file;
                     Log::add(json_encode($data), Log::ERROR);
                     $this->_printJson($data['result']);
                 }
                 if (file_put_contents($this->_file, $content) === false) {
                     $data['result'] = Text::_('PLG_EXCFI_EXPORT_ERROR_AFTER_CONVERT');
-                    $date['file'] = $this->_file;
                     Log::add(json_encode($data), Log::ERROR);
                     $this->_printJson($data['result']);
                 }
             } else {
                 $data['result'] = Text::_('PLG_EXCFI_EXPORT_ERROR_BEFORE_CONVERT');
-                $date['file'] = $this->_file;
                 Log::add(json_encode($data), Log::ERROR);
                 $this->_printJson($data['result']);
             }
@@ -613,7 +634,7 @@ class plgSystemExCfi extends CMSPlugin
 
         // return result
         $data['result'] = Text::_('PLG_EXCFI_EXPORT_SUCCESS');
-        $date['file'] = $this->_file;
+        $data['file'] = $this->_file;
         Log::add(json_encode($data), Log::INFO);
         $this->_printJson($data['result'], true, ['f' => urlencode(pathinfo($this->_file, PATHINFO_BASENAME))]);
 
