@@ -1,4 +1,4 @@
-# CFI
+# EXCFI
 
 ![Version](https://img.shields.io/badge/VERSION-1.0.10-0366d6.svg?style=for-the-badge)
 ![Joomla](https://img.shields.io/badge/joomla-3.7+-1A3867.svg?style=for-the-badge)
@@ -39,7 +39,7 @@ Any other field names are taken as the names of additional article fields. In ca
 
 The discrepancy between the number of values ​​in the row and the discrepancy with the number of field headers leads to the refusal to process this row. When importing, additional article fields that are not in the file are not affected.
 
-Data on import errors is stored in the *cfi.php* log in the standard Joomla log folder.
+Data on import errors is stored in the *excfi.php* log in the standard Joomla log folder.
 
 If there are no data import errors, the imported file is deleted, otherwise the file is saved in the standard folder of temporary Joomla files.
 
