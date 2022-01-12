@@ -6,22 +6,21 @@
  * @license     GNU General Public License version 3 or later; see http://www.gnu.org/licenses/gpl-3.0.txt
  */
 
-use Joomla\Registry\Registry;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filesystem\Path;
+use Joomla\CMS\Filter\OutputFilter;
+use Joomla\CMS\Form\Form;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Layout\FileLayout;
+use Joomla\CMS\Log\Log;
+use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Plugin\PluginHelper;
-use Joomla\CMS\URI\URI;
-use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\Toolbar\Toolbar;
-use Joomla\CMS\Filesystem\Path;
-use Joomla\CMS\Layout\FileLayout;
 use Joomla\CMS\Session\Session;
-use Joomla\CMS\Log\Log;
-use Joomla\CMS\Language\Text;
 use Joomla\CMS\Table\Table;
-use Joomla\CMS\Form\Form;
-use Joomla\CMS\Filter\OutputFilter;
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\Toolbar\Toolbar;
+use Joomla\CMS\URI\URI;
+use Joomla\Registry\Registry;
 use Joomla\String\StringHelper;
 
 \JLoader::register('FieldsHelper', JPATH_ADMINISTRATOR . '/components/com_fields/helpers/fields.php');
@@ -324,7 +323,9 @@ class plgSystemExCfi extends CMSPlugin
             'articletitle',
             'articlelang',
             'articleintrotext',
-            'articlefulltext'
+            'articlefulltext',
+	        'metadesc',
+	        'metatitle'
         ];
 
         // data processing
@@ -422,6 +423,18 @@ class plgSystemExCfi extends CMSPlugin
                 $article['urls'] = json_decode('{"urla":false,"urlatext":"","targeta":"","urlb":false,"urlbtext":"","targetb":"","urlc":false,"urlctext":"","targetc":""}', true);
                 $article['attribs'] = json_decode('{"article_layout":"","show_title":"","link_titles":"","show_tags":"","show_intro":"","info_block_position":"","info_block_show_title":"","show_category":"","link_category":"","show_parent_category":"","link_parent_category":"","show_associations":"","show_author":"","link_author":"","show_create_date":"","show_modify_date":"","show_publish_date":"","show_item_navigation":"","show_icons":"","show_print_icon":"","show_email_icon":"","show_vote":"","show_hits":"","show_noauth":"","urls_position":"","alternative_readmore":"","article_page_title":"","show_publishing_options":"","show_article_options":"","show_urls_images_backend":"","show_urls_images_frontend":""}', true);
             }
+
+	        if (!empty($articleData['metatitle']))
+	        {
+		        $article['attribs']['article_page_title']
+			        = htmlspecialchars($articleData['metatitle']);
+	        }
+
+	        if (!empty($articleData['metadesc']))
+	        {
+		        $article['metadesc']
+			        = htmlspecialchars($articleData['metadesc']);
+	        }
 
             // save article item
             if ($model->save($article) === false) {
