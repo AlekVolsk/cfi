@@ -1,4 +1,5 @@
-<?php defined('_JEXEC') or die;
+<?php
+
 /**
  * @package     Joomla.Plugin
  * @subpackage  System.cfi
@@ -6,12 +7,14 @@
  * @license     GNU General Public License version 3 or later; see http://www.gnu.org/licenses/gpl-3.0.txt
  */
 
+\defined('_JEXEC') or die;
+
 use Joomla\Registry\Registry;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Version;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\URI\URI;
-use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Layout\FileLayout;
@@ -33,46 +36,53 @@ class plgSystemCfi extends CMSPlugin
         "п»ї" // UTF-8 OO
     ];
 
-    private $_app;
-    private $_doc;
-    private $_user;
-    private $_file = null;
-    private $_cp;
-    private $_fieldPlugins;
+    private $app;
+    private $appConfig;
+    private $doc;
+    private $user;
+    private $file = null;
+    private $cp;
+    private $fieldPlugins;
+
     protected $autoloadLanguage = true;
 
     public function __construct(&$subject, $config)
     {
         parent::__construct($subject, $config);
-        $this->_initConstruct();
+        $this->initConstruct();
     }
 
-    private function _initConstruct($ajax = false)
+    private function initConstruct($ajax = false)
     {
-        $this->_app = Factory::getApplication('administrator');
-        $this->_doc = Factory::getDocument();
-
-        if (!$this->_app->isClient('administrator')) {
-            return;
+        if (Version::MAJOR_VERSION > 3) {
+            $this->app       = Factory::getContainer()->get(Joomla\CMS\Application\AdministratorApplication::class);
+            $this->appConfig = $this->app->getConfig();
+            $user            = $this->app->getIdentity();
+            $this->db        = Factory::getContainer()->get('DatabaseDriver');
+        } else {
+            $this->app       = Factory::getApplication('administrator');
+            $this->appConfig = Factory::getConfig();
+            $user            = Factory::getUser();
+            $this->db        = Factory::getDbo();
         }
+        $this->doc       = Factory::getDocument();
 
         if ($ajax) {
-            $option = $this->_app->input->get('option');
-            $view   = $this->_app->input->get('view');
+            $option = $this->app->input->get('option');
+            $view   = $this->app->input->get('view');
             if (!($option == 'com_content' && (in_array($view, ['articles', 'featured', ''])))) {
                 return;
             }
         } else {
-            $this->_doc->addScript(URI::root(true) . '/plugins/system/cfi/assets/cfi.js');
-            $this->_doc->addStylesheet(URI::root(true) . '/plugins/system/cfi/assets/cfi.css');
+            $this->doc->addScript(URI::root(true) . '/plugins/system/cfi/assets/cfi.js');
+            $this->doc->addStyleSheet(URI::root(true) . '/plugins/system/cfi/assets/cfi.css');
         }
 
-        $user = Factory::getUser();
-        $this->_user = $user->id . ':' . $user->username;
+        $this->user = $user->id . ':' . $user->username;
 
-        $this->_cp = $this->params->get('cp', 'CP1251');
+        $this->cp = $this->params->get('cp', 'CP1251');
 
-        $this->_fieldPlugins = [
+        $this->fieldPlugins = [
             'imagelist' => 0,
             'integer' => 0,
             'list' => 0,
@@ -85,10 +95,10 @@ class plgSystemCfi extends CMSPlugin
             unset($plugins[$key]);
             $plugins[$plugin->name]->params = new Registry($plugins[$plugin->name]->params);
         }
-        foreach (array_keys($this->_fieldPlugins) as $pluginName) {
+        foreach (array_keys($this->fieldPlugins) as $pluginName) {
             $multiple = $plugins[$pluginName]->params->get('multiple', -1);
             if ($multiple >= 0) {
-                $this->_fieldPlugins[$pluginName] = (int)$multiple;
+                $this->fieldPlugins[$pluginName] = (int)$multiple;
             }
         }
 
@@ -98,12 +108,12 @@ class plgSystemCfi extends CMSPlugin
 
     public function onBeforeRender()
     {
-        if ($this->_doc->getType() != 'html' || !$this->_app->isClient('administrator')) {
+        if ($this->doc->getType() != 'html' || !$this->app->isClient('administrator')) {
             return;
         }
 
-        $option = $this->_app->input->get('option');
-        $view   = $this->_app->input->get('view');
+        $option = $this->app->input->get('option');
+        $view   = $this->app->input->get('view');
         if (!($option == 'com_content' && (in_array($view, ['articles', 'featured', ''])))) {
             return;
         }
@@ -116,17 +126,17 @@ class plgSystemCfi extends CMSPlugin
 
     public function onAfterRender()
     {
-        if ($this->_doc->getType() != 'html' || !$this->_app->isClient('administrator')) {
+        if ($this->doc->getType() != 'html' || !$this->app->isClient('administrator')) {
             return;
         }
 
-        $option = $this->_app->input->get('option');
-        $view   = $this->_app->input->get('view');
+        $option = $this->app->input->get('option');
+        $view   = $this->app->input->get('view');
         if (!($option == 'com_content' && (in_array($view, ['articles', 'featured', ''])))) {
             return;
         }
 
-        $html = $this->_app->getBody();
+        $html = $this->app->getBody();
 
         if (strpos($html, '</head>') !== false) {
             list($head, $content) = explode('</head>', $html, 2);
@@ -138,15 +148,14 @@ class plgSystemCfi extends CMSPlugin
             return false;
         }
 
-        $db = Factory::getDbo();
-        $query = $db->getQuery(true)
+        $query = $this->db->getQuery(true)
             ->select('id, title')
             ->from('#__categories')
             ->where('extension = "com_content"')
             ->order('title');
-        $db->setQuery($query);
+        $this->db->setQuery($query);
         try {
-            $categories = $db->loadObjectList();
+            $categories = $this->db->loadObjectList();
         } catch (Exception $e) {
             $categories = [];
         }
@@ -156,13 +165,13 @@ class plgSystemCfi extends CMSPlugin
         preg_match('#id="j-main-container" (\w+)(.*?)>#i', $content, $matches);
         if ($matches && $matches[0]) {
             $wellParams = [
-                'cp' => $this->_cp,
+                'cp' => $this->cp,
                 'categories' => $categories,
                 'showdesc' => $this->params->get('showdesc', 1)
             ];
             $content = str_replace($matches[0], $matches[0] . $well->render($wellParams), $content);
             $html = isset($head) ? ($head . '</head>' . $content) : $content;
-            $this->_app->setBody($html);
+            $this->app->setBody($html);
             return true;
         }
 
@@ -171,44 +180,44 @@ class plgSystemCfi extends CMSPlugin
 
     public function onAjaxCfi()
     {
-        Log::addLogger(['text_file' => 'cfi.php', 'text_entry_format' => "{DATETIME}\t{PRIORITY}\t{MESSAGE}"], Log::ALL);
+        Log::addLogger(['textfile' => 'cfi.php', 'text_entry_format' => "{DATETIME}\t{PRIORITY}\t{MESSAGE}"], Log::ALL);
 
-        $this->_initConstruct(true);
+        $this->initConstruct(true);
 
-        $state = $this->_app->input->get('cfistate', '');
+        $state = $this->app->input->get('cfistate', '');
 
         if (!Session::checkToken($state == 'download' ? 'get' : 'post')) {
             $data = [
                 'result' => Text::_('JINVALID_TOKEN'),
-                'user' => $this->_user,
-                'file' => $this->_app->input->files->getArray(),
-                'get' => $this->_app->input->get->getArray(),
-                'post' => $this->_app->input->post->getArray()
+                'user' => $this->user,
+                'file' => $this->app->input->files->getArray(),
+                'get' => $this->app->input->get->getArray(),
+                'post' => $this->app->input->post->getArray()
             ];
             Log::add(json_encode($data), Log::ERROR);
-            $this->_printJson($data['result']);
+            $this->printJson($data['result']);
         }
 
         if ($state == 'import') {
-            $this->_checkFile($this->_app->input->files->get('cfifile'));
-            $this->_importData();
+            $this->checkFile($this->app->input->files->get('cfifile'));
+            $this->importData();
         }
 
         if ($state == 'export') {
-            $this->_exportData();
+            $this->exportData();
         }
 
         if ($state == 'download') {
-            $this->_file = $this->_app->input->get('f', '');
-            if ($this->_file) {
-                $this->_file = Path::clean(Factory::getConfig()->get('tmp_path') . '/' . urldecode($this->_file));
-                $this->_fileDownload($this->_file);
-                @unlink($this->_file);
+            $this->file = $this->app->input->get('f', '');
+            if ($this->file) {
+                $this->file = Path::clean($this->appConfig->get('tmp_path') . '/' . urldecode($this->file));
+                $this->fileDownload($this->file);
+                @unlink($this->file);
             }
         }
     }
 
-    private function _printJson($message = '', $result = false, $custom = [])
+    private function printJson($message = '', $result = false, $custom = [])
     {
         $custom['result'] = $result;
         $custom['message'] = $message;
@@ -216,39 +225,38 @@ class plgSystemCfi extends CMSPlugin
         exit;
     }
 
-    private function _checkFile($file)
+    private function checkFile($file)
     {
         $data = [
             'result' => '',
-            'user' => $this->_user,
+            'user' => $this->user,
             'file' => $file
         ];
 
         if (is_array($file) && count($file)) {
-
             if ($file['error'] != 0) {
                 $data['result'] = Text::_('PLG_CFIfile_ERROR');
                 Log::add(json_encode($data), Log::ERROR);
-                $this->_printJson($data['result']);
+                $this->printJson($data['result']);
             }
 
             if (!$file['size']) {
                 $data['result'] = Text::_('PLG_CFIfile_SIZE');
                 Log::add(json_encode($data), Log::ERROR);
-                $this->_printJson($data['result']);
+                $this->printJson($data['result']);
             }
 
             if (pathinfo($file['name'], PATHINFO_EXTENSION) !== 'csv') {
                 $data['result'] = Text::_('PLG_CFIfile_TYPE');
                 Log::add(json_encode($data), Log::ERROR);
-                $this->_printJson($data['result']);
+                $this->printJson($data['result']);
             }
 
-            $this->_file = Path::clean(Factory::getConfig()->get('tmp_path') . '/cfi_' . date('Y-m-d-H-i-s') . '.csv');
-            if (!@move_uploaded_file($file['tmp_name'], $this->_file)) {
+            $this->file = Path::clean($this->appConfig->get('tmp_path') . '/cfi_' . date('Y-m-d-H-i-s') . '.csv');
+            if (!@move_uploaded_file($file['tmp_name'], $this->file)) {
                 $data['result'] = Text::_('PLG_CFIfile_MOVE');
                 Log::add(json_encode($data), Log::ERROR);
-                $this->_printJson($data['result']);
+                $this->printJson($data['result']);
             }
 
             return true;
@@ -256,34 +264,34 @@ class plgSystemCfi extends CMSPlugin
 
         $data['result'] = Text::_('PLG_CFIfile_NOTHING');
         Log::add(json_encode($data), Log::ERROR);
-        $this->_printJson($data['result']);
+        $this->printJson($data['result']);
     }
 
-    private function _importData()
+    private function importData()
     {
         // log template
         $data = [
             'result' => '',
-            'user' => $this->_user,
-            'file' => $this->_file
+            'user' => $this->user,
+            'file' => $this->file
         ];
 
         // get categories
-        $categories = $this->_getCategories();
+        $categories = $this->getCategories();
         if (!$categories) {
             $data['result'] = Text::_('PLG_CFI_IMPORT_GET_CATEGORIES');
             Log::add(json_encode($data), Log::ERROR);
-            $this->_printJson($data['result']);
+            $this->printJson($data['result']);
         }
 
         // get file content
-        $content = trim(file_get_contents($this->_file));
+        $content = trim(file_get_contents($this->file));
 
         // convert to UTF-8
-        $isConvert = (int) $this->_app->input->get('cficonvert', 0);
+        $isConvert = (int) $this->app->input->get('cficonvert', 0);
 
         if ($isConvert > 0) {
-            $content = mb_convert_encoding($content, 'UTF-8', $this->_cp);
+            $content = mb_convert_encoding($content, 'UTF-8', $this->cp);
         }
 
         // unset utf-8 bom
@@ -303,7 +311,7 @@ class plgSystemCfi extends CMSPlugin
         if (count($lines) < 2) {
             $data['result'] = Text::_('PLG_CFI_IMPORT_EMPTY');
             Log::add(json_encode($data), Log::ERROR);
-            $this->_printJson($data['result']);
+            $this->printJson($data['result']);
         }
 
         // get columns
@@ -312,7 +320,7 @@ class plgSystemCfi extends CMSPlugin
         if ((array_search('articleid', $columns) === false) || (array_search('articletitle', $columns) === false)) {
             $data['result'] = Text::_('PLG_CFI_IMPORT_NO_COLUMN');
             Log::add(json_encode($data), Log::ERROR);
-            $this->_printJson($data['result']);
+            $this->printJson($data['result']);
         }
         unset($lines[0]);
 
@@ -334,9 +342,16 @@ class plgSystemCfi extends CMSPlugin
 
         $fieldModel = BaseDatabaseModel::getInstance('Field', 'FieldsModel', ['ignore_request' => true]);
 
+        BaseDatabaseModel::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_content/models/', 'ContentModel');
         Table::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_content/tables/');
-        Form::addFormPath(JPATH_ADMINISTRATOR . '/components/com_content/models/forms');
-        Form::addFieldPath(JPATH_ADMINISTRATOR . '/components/com_content/models/fields');
+        if (Version::MAJOR_VERSION > 3) {
+            Form::addFormPath(JPATH_ADMINISTRATOR . '/components/com_content/forms');
+        } else {
+            Form::addFormPath(JPATH_ADMINISTRATOR . '/components/com_content/models/forms');
+            Form::addFormPath(JPATH_ADMINISTRATOR . '/components/com_content/model/form');
+            Form::addFieldPath(JPATH_ADMINISTRATOR . '/components/com_content/models/fields');
+            Form::addFieldPath(JPATH_ADMINISTRATOR . '/components/com_content/model/field');
+        }
 
         set_time_limit(0);
 
@@ -398,31 +413,53 @@ class plgSystemCfi extends CMSPlugin
 
             if ($isNewArticle) {
                 //set data on new article item
-                $article['id'] = 0;
-                $article['title'] = $articleData['articletitle'];
-                $article['alias'] = OutputFilter::stringURLSafe($article['title']);
-                $article['introtext'] = $articleData['articleintrotext'];
-                $article['fulltext'] = $articleData['articlefulltext'];
-                $article['catid'] = $articleData['articlecat'];
-                $article['language'] = $articleData['articlelang'];
-                $article['created'] = Factory::getDate()->toSql();
-                $article['created_by'] = explode(':', $this->_user)[0];
-                $article['state'] = $state;
-                $article['access'] = $this->_app->get('access', 1);
-                $article['metadata'] = json_decode('{"robots":"","author":"","rights":"","xreference":""}', true);
-                $article['images'] = json_decode('{"image_intro":"","float_intro":"","image_intro_alt":"","image_intro_caption":"","image_fulltext":"","float_fulltext":"","image_fulltext_alt":"","image_fulltext_caption":""}', true);
-                $article['urls'] = json_decode('{"urla":false,"urlatext":"","targeta":"","urlb":false,"urlbtext":"","targetb":"","urlc":false,"urlctext":"","targetc":""}', true);
-                $article['attribs'] = json_decode('{"article_layout":"","show_title":"","link_titles":"","show_tags":"","show_intro":"","info_block_position":"","info_block_show_title":"","show_category":"","link_category":"","show_parent_category":"","link_parent_category":"","show_associations":"","show_author":"","link_author":"","show_create_date":"","show_modify_date":"","show_publish_date":"","show_item_navigation":"","show_icons":"","show_print_icon":"","show_email_icon":"","show_vote":"","show_hits":"","show_noauth":"","urls_position":"","alternative_readmore":"","article_page_title":"","show_publishing_options":"","show_article_options":"","show_urls_images_backend":"","show_urls_images_frontend":""}', true);
+                $article['id']         = 0;
+                $article['title']      = $articleData['articletitle'];
+                $article['alias']      = OutputFilter::stringURLSafe($article['title']);
+                $article['introtext']  = $articleData['articleintrotext'];
+                $article['fulltext']   = $articleData['articlefulltext'];
+                $article['catid']      = $articleData['articlecat'];
+                $article['language']   = $articleData['articlelang'];
+                $article['featured']   = 0;
+                $article['created']    = Factory::getDate()->toSql();
+                $article['created_by'] = explode(':', $this->user)[0];
+                $article['state']      = $state;
+                $article['access']     = $this->app->get('access', 1);
+                $article['metadata']   = json_decode('{"robots":"","author":"","rights":"","xreference":""}', true);
+                $article['images']     = json_decode('{"image_intro":"","float_intro":"","image_intro_alt":"","image_intro_caption":"","image_fulltext":"","float_fulltext":"","image_fulltext_alt":"","image_fulltext_caption":""}', true);
+                $article['urls']       = json_decode('{"urla":false,"urlatext":"","targeta":"","urlb":false,"urlbtext":"","targetb":"","urlc":false,"urlctext":"","targetc":""}', true);
+                $article['attribs']    = json_decode('{"article_layout":"","show_title":"","link_titles":"","show_tags":"","show_intro":"","info_block_position":"","info_block_show_title":"","show_category":"","link_category":"","show_parent_category":"","link_parent_category":"","show_associations":"","show_author":"","link_author":"","show_create_date":"","show_modify_date":"","show_publish_date":"","show_item_navigation":"","show_icons":"","show_print_icon":"","show_email_icon":"","show_vote":"","show_hits":"","show_noauth":"","urls_position":"","alternative_readmore":"","article_page_title":"","show_publishing_options":"","show_article_options":"","show_urls_images_backend":"","show_urls_images_frontend":""}', true);
+            }
+
+            // article form
+            $form = $model->getForm($article, true);
+            $errs = [];
+            if (!$form) {
+                foreach ($model->getErrors() as $error) {
+                    $errs[] = ($error instanceof Exception) ? $error->getMessage() : $error;
+                }
+                if (!empty($errors[$strNum + 1])) {
+                    $errors[$strNum + 1] .= '. ' . Text::_('PLG_CFI_IMPORT_SAVE_ARTICLE') . ': ' . implode('; ', $errs);
+                } else {
+                    $errors[$strNum + 1] = Text::_('PLG_CFI_IMPORT_SAVE_ARTICLE') . ': ' . implode('; ', $errs);
+                }
+                unset($model, $article, $errs);
+                $continues++;
+                continue;
             }
 
             // save article item
+            $this->app->input->set('task', 'save');
             if ($model->save($article) === false) {
-                unset($article);
-                if (!empty($errors[$strNum + 1])) {
-                    $errors[$strNum + 1] .= '. ' . Text::_('PLG_CFI_IMPORT_SAVE_ARTICLE');
-                } else {
-                    $errors[$strNum + 1] = Text::_('PLG_CFI_IMPORT_SAVE_ARTICLE');
+                foreach ($model->getErrors() as $error) {
+                    $errs[] = ($error instanceof Exception) ? $error->getMessage() : $error;
                 }
+                if (!empty($errors[$strNum + 1])) {
+                    $errors[$strNum + 1] .= '. ' . Text::_('PLG_CFI_IMPORT_SAVE_ARTICLE') . ': ' . implode('; ', $errs);
+                } else {
+                    $errors[$strNum + 1] = Text::_('PLG_CFI_IMPORT_SAVE_ARTICLE') . ': ' . implode('; ', $errs);
+                }
+                unset($model, $article, $errs);
                 $continues++;
                 continue;
             } else {
@@ -442,7 +479,7 @@ class plgSystemCfi extends CMSPlugin
 
             // get article custom fields
             $jsFields = FieldsHelper::getFields('com_content.article', $article, true);
-            foreach($jsFields as $key => $jsField) {
+            foreach ($jsFields as $key => $jsField) {
                 $jsFields[$jsField->name] = $jsField;
                 unset($jsFields[$key]);
             }
@@ -451,7 +488,7 @@ class plgSystemCfi extends CMSPlugin
             $fieldsErrors = [];
             foreach ($fieldsData as $fieldName => $fieldValue) {
                 if (array_key_exists($fieldName, $jsFields)) {
-                    if ($jsFields[$fieldName]->type === 'checkboxes' || in_array($jsFields[$fieldName]->type, array_keys($this->_fieldPlugins))) {
+                    if ($jsFields[$fieldName]->type === 'checkboxes' || in_array($jsFields[$fieldName]->type, array_keys($this->fieldPlugins))) {
                         $decode = json_decode($fieldValue, true);
                         $fieldValue = json_last_error() === JSON_ERROR_NONE ? $decode : [$fieldValue];
                     } elseif (strpos($fieldValue, 'array::') === 0) {
@@ -475,73 +512,71 @@ class plgSystemCfi extends CMSPlugin
         if ($errors) {
             $data['errors'] = $errors;
         } else {
-            @unlink($this->_file);
+            @unlink($this->file);
         }
         Log::add(json_encode($data), Log::INFO);
-        $this->_printJson($data['result'], true);
+        $this->printJson($data['result'], true);
     }
 
-    private function _getCategories()
+    private function getCategories()
     {
-        $db = Factory::getDbo();
-        $query = $db->getQuery(true)
+        $query = $this->db->getQuery(true)
             ->select('id')
             ->from('#__categories')
             ->where('extension = "com_content"')
             ->order('id');
-        $db->setQuery($query);
+        $this->db->setQuery($query);
         try {
-            return $db->loadColumn();
+            return $this->db->loadColumn();
         } catch (Exception $e) {
             return false;
         }
     }
 
-    private function _exportData()
+    private function exportData()
     {
         // log template
         $data = [
             'result' => '',
-            'user' => $this->_user
+            'user' => $this->user
         ];
 
         // get id category
-        $catid = (int)$this->_app->input->get('cficat', 0);
+        $catid = (int)$this->app->input->get('cficat', 0);
         if (!$catid) {
             $data['result'] = Text::_('PLG_CFI_EXPORT_NO_CATEGORY');
             Log::add(json_encode($data), Log::ERROR);
-            $this->_printJson($data['result']);
+            $this->printJson($data['result']);
         }
 
         // get articles
-        $db = Factory::getDbo();
-        $query = $db->getQuery(true)
+        $query = $this->db->getQuery(true)
             ->select('id, title, language, introtext, `fulltext`')
             ->from('#__content')
             ->where('state >= 0')
             ->where('catid = ' . (int)$catid)
             ->order('id');
-        $db->setQuery($query);
+        $this->db->setQuery($query);
         try {
-            $articles = $db->loadObjectList();
+            $articles = $this->db->loadObjectList();
         } catch (Exception $e) {
             $data['result'] = Text::_('PLG_CFI_EXPORT_GET_CONTENT');
             Log::add(json_encode($data), Log::ERROR);
-            $this->_printJson($data['result']);
+            $this->printJson($data['result']);
         }
 
         if (!$articles) {
             $data['result'] = Text::_('PLG_CFI_EXPORT_EMPTY_CONTENT');
             Log::add(json_encode($data), Log::ERROR);
-            $this->_printJson($data['result']);
+            $this->printJson($data['result']);
         }
 
         // file handler
-        $this->_file = Path::clean(Factory::getConfig()->get('tmp_path') . '/cfi_export_' . date('Y-m-d-H-i-s') . '.csv');
-        if (($fileHandle = fopen($this->_file, 'w')) === false) {
+        $this->file = Path::clean($this->appConfig->get('tmp_path') . '/cfi_export_' . date('Y-m-d-H-i-s') . '.csv');
+        if (($fileHandle = fopen($this->file, 'w')) === false) {
             $data['result'] = Text::_('PLG_CFI_EXPORTfile_CREATE');
             Log::add(json_encode($data), Log::ERROR);
-            $this->_printJson($data['result']);
+            $this->printJson($data['result']);
         }
 
         // make columns
@@ -554,7 +589,7 @@ class plgSystemCfi extends CMSPlugin
             'articlefulltext'
         ];
         $jsFields = FieldsHelper::getFields('com_content.article', $articles[0], true);
-        foreach($jsFields as $key => $jsField) {
+        foreach ($jsFields as $jsField) {
             $columns[] = $jsField->name;
         }
         fputcsv($fileHandle, $columns, ';');
@@ -570,8 +605,8 @@ class plgSystemCfi extends CMSPlugin
             $outItem[] = str_replace(["\n", "\r"], '', $article->fulltext);
 
             $jsFields = FieldsHelper::getFields('com_content.article', $article, true);
-            foreach($jsFields as $jsField) {
-                if ($jsField->type === 'checkboxes' || in_array($jsField->type, array_keys($this->_fieldPlugins))) {
+            foreach ($jsFields as $jsField) {
+                if ($jsField->type === 'checkboxes' || in_array($jsField->type, array_keys($this->fieldPlugins))) {
                     $outItem[] = count($jsField->rawvalue) > 1 ? json_encode($jsField->rawvalue) : $jsField->rawvalue[0];
                 } elseif (is_array($jsField->rawvalue)) {
                     $outItem[] = 'array::' . json_encode($jsField->rawvalue);
@@ -587,40 +622,40 @@ class plgSystemCfi extends CMSPlugin
         unset($articles, $jsFields);
 
         // convert
-        if ((bool) $this->_app->input->get('cficonvert', false)) {
-            $contentIn = file_get_contents($this->_file);
+        if ((bool) $this->app->input->get('cficonvert', false)) {
+            $contentIn = file_get_contents($this->file);
             if ($contentIn !== false) {
-                $content = mb_convert_encoding($contentIn, $this->_cp, 'UTF-8');
+                $content = mb_convert_encoding($contentIn, $this->cp, 'UTF-8');
                 if (!$content) {
                     $data['result'] = Text::_('PLG_CFI_EXPORT_ERROR_CONVERT');
-                    $date['file'] = $this->_file;
+                    $date['file'] = $this->file;
                     Log::add(json_encode($data), Log::ERROR);
-                    $this->_printJson($data['result']);
+                    $this->printJson($data['result']);
                 }
-                if (file_put_contents($this->_file, $content) === false) {
+                if (file_put_contents($this->file, $content) === false) {
                     $data['result'] = Text::_('PLG_CFI_EXPORT_ERROR_AFTER_CONVERT');
-                    $date['file'] = $this->_file;
+                    $date['file'] = $this->file;
                     Log::add(json_encode($data), Log::ERROR);
-                    $this->_printJson($data['result']);
+                    $this->printJson($data['result']);
                 }
             } else {
                 $data['result'] = Text::_('PLG_CFI_EXPORT_ERROR_BEFORE_CONVERT');
-                $date['file'] = $this->_file;
+                $date['file'] = $this->file;
                 Log::add(json_encode($data), Log::ERROR);
-                $this->_printJson($data['result']);
+                $this->printJson($data['result']);
             }
         }
 
         // return result
         $data['result'] = Text::_('PLG_CFI_EXPORT_SUCCESS');
-        $date['file'] = $this->_file;
+        $date['file'] = $this->file;
         Log::add(json_encode($data), Log::INFO);
-        $this->_printJson($data['result'], true, ['f' => urlencode(pathinfo($this->_file, PATHINFO_BASENAME))]);
+        $this->printJson($data['result'], true, ['f' => urlencode(pathinfo($this->file, PATHINFO_BASENAME))]);
 
         exit;
     }
 
-    private function _fileDownload($file)
+    private function fileDownload($file)
     {
         set_time_limit(0);
         if (file_exists($file)) {

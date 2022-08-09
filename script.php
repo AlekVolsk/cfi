@@ -37,10 +37,6 @@ class plgSystemCfiInstallerScript
             $msg .= Text::sprintf('J_JOOMLA_COMPATIBLE', $name, $minJoomlaVersion);
         }
 
-        if (version_compare($ver->getShortVersion(), '4.0', '>=')) {
-            $msg .= 'Joomla!4 is not compatible';
-        }
-
         if (version_compare(phpversion(), $minPhpVersion, 'lt')) {
             $msg .= Text::sprintf('J_PHP_COMPATIBLE', $name, $minPhpVersion);
         }
