@@ -1,7 +1,7 @@
 # CFI
 
-![Version](https://img.shields.io/badge/VERSION-1.0.12-0366d6.svg?style=for-the-badge)
-![Joomla](https://img.shields.io/badge/joomla-3.7+-1A3867.svg?style=for-the-badge)
+![Version](https://img.shields.io/badge/VERSION-1.0.14-0366d6.svg?style=for-the-badge)
+![Joomla!](https://img.shields.io/badge/Joomla!-3.7+-1A3867.svg?style=for-the-badge)
 ![Php](https://img.shields.io/badge/php-5.6+-8892BF.svg?style=for-the-badge)
 
 _description in Russian [here](README.ru.md)_
@@ -41,9 +41,9 @@ Any other field names are taken as the names of custom article fields. In cases 
 
 The discrepancy between the number of values ​​in the row and the discrepancy with the number of field headers leads to the refusal to process this row. When importing, custom article fields that are not in the file are not affected.
 
-Data on import errors is stored in the *cfi.php* log in the standard Joomla log folder.
+Data on import errors is stored in the *cfi.php* log in the standard Joomla! log folder.
 
-If there are no data import errors, the imported file is deleted, otherwise the file is saved in the standard folder of temporary Joomla files.
+If there are no data import errors, the imported file is deleted, otherwise the file is saved in the standard folder of temporary Joomla! files.
 
 ---
 
@@ -51,13 +51,13 @@ If there are no data import errors, the imported file is deleted, otherwise the 
 
 When exporting, data is written to the file as is, in the format in which it is stored in the database of your site: plain text, text with HTML markup, json structures and other complex string structures.
 
-For standard custom Joomla fields of a list type that return the structure of the stored data in the form of unassociated arrays, json is returned to the resulting file. For non-standard fields, the structure `array::` is written before the json value in the file: this is necessary so that with the possible subsequent import of this data, the plugin can parse the json value from the file and substitute the prepared array for the corresponding field. If you don’t understand anything from the above phrase, it’s okay, just don’t touch the value of `array ::` in your file or delete this column completely in order to avoid damage to the data of the corresponding article field.
+For standard custom Joomla! fields of a list type that return the structure of the stored data in the form of unassociated arrays, json is returned to the resulting file. For non-standard fields, the structure `array::` is written before the json value in the file: this is necessary so that with the possible subsequent import of this data, the plugin can parse the json value from the file and substitute the prepared array for the corresponding field. If you don’t understand anything from the above phrase, it’s okay, just don’t touch the value of `array ::` in your file or delete this column completely in order to avoid damage to the data of the corresponding article field.
 
 ---
 
 ### Data protection during import
 
-The data of custom fields are written to the database by direct queries and are not subjected to any processing. Due to the fact that this data may contain HTML markup tags, json strings or other string constructs containing specialized characters, **data is not shielded!** Please ensure the safety of the imported data at the stage of generating the file for importing data into Joomla .
+The data of custom fields are written to the database by direct queries and are not subjected to any processing. Due to the fact that this data may contain HTML markup tags, json strings or other string constructs containing specialized characters, **data is not shielded!** Please ensure the safety of the imported data at the stage of generating the file for importing data into Joomla! .
 
 **The plugin developer is not responsible for the incorrect content of the imported files, which may damage your site**.
 

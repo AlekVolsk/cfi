@@ -101,11 +101,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         response = JSON.parse(xhr.response);
                         cfiDropArea.classList.remove('cfi-dropzone-highlight');
                         cfiDropArea.classList.add('alert-' + (response.result ? 'success' : 'error'));
-                        cfiDropLabel.innerHTML = '<strong>' + (response.result ? cfiDropArea.dataset.success : cfiDropArea.dataset.error) + '</strong><br>' + response.message;
+                        cfiDropLabel.innerHTML = '<strong>' + (response.result
+                          ? cfiDropArea.dataset.success
+                          : cfiDropArea.dataset.error) + '</strong><br>' + response.message;
                     } catch (e) {
                         cfiDropArea.classList.remove('cfi-dropzone-highlight');
                         cfiDropArea.classList.add('alert-error');
-                        cfiDropLabel.innerHTML = '<strong>' + cfiDropArea.dataset.error + '</strong><span>' + xhr.response + '</span>';
+                        cfiDropLabel.innerHTML = '<strong>' + cfiDropArea.dataset.error + '</strong><span>' +
+                          xhr.response + '</span>';
                     }
                     cfiDropArea.style.pointerEvents = 'auto';
                     cfiExportArea.style.pointerEvents = 'auto';
@@ -122,7 +125,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     cfiDropArea.classList.remove('cfi-dropzone-highlight');
                     cfiDropArea.classList.add('alert-error');
-                    cfiDropLabel.innerHTML = '<strong>' + xhr.status + '</strong><span>Unknown error, look at the log</span>';
+                    cfiDropLabel.innerHTML = '<strong>' + xhr.status +
+                      '</strong><span>Unknown error, look at the log</span>';
                     cfiDropArea.style.pointerEvents = 'auto';
                     cfiExportArea.style.pointerEvents = 'auto';
                 }
@@ -164,7 +168,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (response.result) {
                             cfiLabelExport.classList.add('text-success');
                             cfiLabelExport.innerHTML = cfiBtnExport.dataset.success;
-                            window.location = url + '&format=raw&cfistate=download&f=' + response.f + '&' + Joomla.getOptions('csrf.token') + '=1';
+                            window.location = url + '&format=raw&cfistate=download&f=' + response.f + '&' +
+                              Joomla.getOptions('csrf.token') + '=1';
                         } else {
                             cfiLabelExport.classList.add('text-error');
                             cfiLabelExport.innerHTML = cfiBtnExport.dataset.error + '<br>' + response.message;
@@ -178,7 +183,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     cfiDropArea.classList.remove('cfi-dropzone-highlight');
                     cfiDropArea.classList.add('alert-error');
-                    cfiLabelExport.innerHTML = '<strong>' + xhr.status + '</strong><span>Unknown error, look at the log</span>';
+                    cfiLabelExport.innerHTML = '<strong>' + xhr.status +
+                      '</strong><span>Unknown error, look at the log</span>';
                     cfiDropArea.style.pointerEvents = 'auto';
                     cfiExportArea.style.pointerEvents = 'auto';
                 }

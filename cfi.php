@@ -5,9 +5,9 @@
  * @subpackage  System.cfi
  * @copyright   Copyright (C) Aleksey A. Morozov. All rights reserved.
  * @license     GNU General Public License version 3 or later; see http://www.gnu.org/licenses/gpl-3.0.txt
+ *
+ * @phpcs:disable PSR1.Classes.ClassDeclaration.MissingNamespace
  */
-
-\defined('_JEXEC') or die;
 
 use Joomla\Registry\Registry;
 use Joomla\CMS\Factory;
@@ -26,9 +26,13 @@ use Joomla\CMS\Form\Form;
 use Joomla\CMS\Filter\OutputFilter;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 
-\JLoader::register('FieldsHelper', JPATH_ADMINISTRATOR . '/components/com_fields/helpers/fields.php');
+// phpcs:disable PSR1.Files.SideEffects
+\defined('_JEXEC') or die;
 
-class plgSystemCfi extends CMSPlugin
+\JLoader::register('FieldsHelper', JPATH_ADMINISTRATOR . '/components/com_fields/helpers/fields.php');
+// phpcs:enable PSR1.Files.SideEffects
+
+class PlgSystemCfi extends CMSPlugin
 {
     // UTF BOM signature
     private $BOM = [
@@ -65,7 +69,12 @@ class plgSystemCfi extends CMSPlugin
             $user            = Factory::getUser();
             $this->db        = Factory::getDbo();
         }
-        $this->doc       = Factory::getDocument();
+
+        if (!$this->app->isClient('administrator')) {
+            return;
+        }
+
+        $this->doc = Factory::getDocument();
 
         if ($ajax) {
             $option = $this->app->input->get('option');
@@ -108,7 +117,7 @@ class plgSystemCfi extends CMSPlugin
 
     public function onBeforeRender()
     {
-        if ($this->doc->getType() != 'html' || !$this->app->isClient('administrator')) {
+        if (!$this->app->isClient('administrator') || $this->doc->getType() != 'html') {
             return;
         }
 
@@ -118,7 +127,10 @@ class plgSystemCfi extends CMSPlugin
             return;
         }
 
-        $toolbar = new FileLayout('toolbar', Path::clean(JPATH_PLUGINS . '/system/cfi/layouts'));
+        $toolbar = new FileLayout(
+            'toolbar_j' . Version::MAJOR_VERSION,
+            Path::clean(JPATH_PLUGINS . '/system/cfi/layouts')
+        );
         ToolBar::getInstance('toolbar')->appendButton('Custom', $toolbar->render([]), 'cfi');
 
         return true;
@@ -126,7 +138,7 @@ class plgSystemCfi extends CMSPlugin
 
     public function onAfterRender()
     {
-        if ($this->doc->getType() != 'html' || !$this->app->isClient('administrator')) {
+        if (!$this->app->isClient('administrator') || $this->doc->getType() != 'html') {
             return;
         }
 
@@ -160,7 +172,7 @@ class plgSystemCfi extends CMSPlugin
             $categories = [];
         }
 
-        $well = new FileLayout('well', Path::clean(JPATH_PLUGINS . '/system/cfi/layouts'));
+        $well = new FileLayout('well_j' . Version::MAJOR_VERSION, Path::clean(JPATH_PLUGINS . '/system/cfi/layouts'));
         $matches = [];
         preg_match('#id="j-main-container" (\w+)(.*?)>#i', $content, $matches);
         if ($matches && $matches[0]) {
@@ -378,10 +390,14 @@ class plgSystemCfi extends CMSPlugin
             }
 
             // get missing article values
-            $articleData['articlecat'] = array_key_exists('articlecat', $articleData) && in_array($articleData['articlecat'], $categories) ? $articleData['articlecat'] : $categories[0];
-            $articleData['articlelang'] = array_key_exists('articlelang', $articleData) ? $articleData['articlelang'] : '*';
-            $articleData['articleintrotext'] = array_key_exists('articleintrotext', $articleData) ? $articleData['articleintrotext'] : '';
-            $articleData['articlefulltext'] = array_key_exists('articlefulltext', $articleData) ? $articleData['articlefulltext'] : '';
+            $articleData['articlecat'] = array_key_exists('articlecat', $articleData)
+                && in_array($articleData['articlecat'], $categories) ? $articleData['articlecat'] : $categories[0];
+            $articleData['articlelang'] = array_key_exists('articlelang', $articleData)
+                ? $articleData['articlelang'] : '*';
+            $articleData['articleintrotext'] = array_key_exists('articleintrotext', $articleData)
+                ? $articleData['articleintrotext'] : '';
+            $articleData['articlefulltext'] = array_key_exists('articlefulltext', $articleData)
+                ? $articleData['articlefulltext'] : '';
 
             // get article instance
             $model = BaseDatabaseModel::getInstance('Article', 'ContentModel');
@@ -390,12 +406,13 @@ class plgSystemCfi extends CMSPlugin
             $isNewArticle = true;
             $state = 1;
             if ($articleData['articleid'] > 0) {
+                //var_dump($articleData['articleid']);
                 $article = $model->getItem((int)$articleData['articleid']);
-
-                if (!$article->id) {
+                if (empty($article) || !$article->id) {
                     unset($article);
                     $state = 0;
                     $errors[$strNum + 1] = Text::sprintf('PLG_CFI_IMPORT_LOAD_ARTICLE', $articleData['articleid']);
+                    continue;
                 } else {
                     $isNewArticle = false;
                     $article = (array)$article;
@@ -425,10 +442,66 @@ class plgSystemCfi extends CMSPlugin
                 $article['created_by'] = explode(':', $this->user)[0];
                 $article['state']      = $state;
                 $article['access']     = $this->app->get('access', 1);
-                $article['metadata']   = json_decode('{"robots":"","author":"","rights":"","xreference":""}', true);
-                $article['images']     = json_decode('{"image_intro":"","float_intro":"","image_intro_alt":"","image_intro_caption":"","image_fulltext":"","float_fulltext":"","image_fulltext_alt":"","image_fulltext_caption":""}', true);
-                $article['urls']       = json_decode('{"urla":false,"urlatext":"","targeta":"","urlb":false,"urlbtext":"","targetb":"","urlc":false,"urlctext":"","targetc":""}', true);
-                $article['attribs']    = json_decode('{"article_layout":"","show_title":"","link_titles":"","show_tags":"","show_intro":"","info_block_position":"","info_block_show_title":"","show_category":"","link_category":"","show_parent_category":"","link_parent_category":"","show_associations":"","show_author":"","link_author":"","show_create_date":"","show_modify_date":"","show_publish_date":"","show_item_navigation":"","show_icons":"","show_print_icon":"","show_email_icon":"","show_vote":"","show_hits":"","show_noauth":"","urls_position":"","alternative_readmore":"","article_page_title":"","show_publishing_options":"","show_article_options":"","show_urls_images_backend":"","show_urls_images_frontend":""}', true);
+                $article['metadata']   = [
+                    'robots'     => '',
+                    'author'     => '',
+                    'rights'     => '',
+                    'xreference' => ''
+                ];
+                $article['images']     = [
+                    'image_intro'            => '',
+                    'float_intro'            => '',
+                    'image_intro_alt'        => '',
+                    'image_intro_caption'    => '',
+                    'image_fulltext'         => '',
+                    'float_fulltext'         => '',
+                    'image_fulltext_alt'     => '',
+                    'image_fulltext_caption' => ''
+                ];
+                $article['urls']       = [
+                    'urla'     => false,
+                    'urlatext' => '',
+                    'targeta'  => '',
+                    'urlb'     => false,
+                    'urlbtext' => '',
+                    'targetb'  => '',
+                    'urlc'     => false,
+                    'urlctext' => '',
+                    'targetc'  => ''
+                ];
+                $article['attribs']    = [
+                    'article_layout'           => '',
+                    'show_title'               => '',
+                    'link_titles'              => '',
+                    'show_tags'                => '',
+                    'show_intro'               => '',
+                    'info_block_position'      => '',
+                    'info_block_show_title'    => '',
+                    'show_category'            => '',
+                    'link_category'            => '',
+                    'show_parent_category'     => '',
+                    'link_parent_category'     => '',
+                    'show_associations'        => '',
+                    'show_author'              => '',
+                    'link_author'              => '',
+                    'show_create_date'         => '',
+                    'show_modify_date'         => '',
+                    'show_publish_date'        => '',
+                    'show_item_navigation'     => '',
+                    'show_icons'               => '',
+                    'show_print_icon'          => '',
+                    'show_email_icon'          => '',
+                    'show_vote'                => '',
+                    'show_hits'                => '',
+                    'show_noauth'              => '',
+                    'urls_position'            => '',
+                    'alternative_readmore'     => '',
+                    'article_page_title'       => '',
+                    'show_publishing_option'   => '',
+                    'show_article_options'     => '',
+                    'show_urls_images_backend' => '',
+                    'show_urls_images_fronten' => '',
+                ];
             }
 
             // article form
@@ -488,7 +561,10 @@ class plgSystemCfi extends CMSPlugin
             $fieldsErrors = [];
             foreach ($fieldsData as $fieldName => $fieldValue) {
                 if (array_key_exists($fieldName, $jsFields)) {
-                    if ($jsFields[$fieldName]->type === 'checkboxes' || in_array($jsFields[$fieldName]->type, array_keys($this->fieldPlugins))) {
+                    if (
+                        $jsFields[$fieldName]->type === 'checkboxes' ||
+                        in_array($jsFields[$fieldName]->type, array_keys($this->fieldPlugins))
+                    ) {
                         $decode = json_decode($fieldValue, true);
                         $fieldValue = json_last_error() === JSON_ERROR_NONE ? $decode : [$fieldValue];
                     } elseif (strpos($fieldValue, 'array::') === 0) {
@@ -508,11 +584,12 @@ class plgSystemCfi extends CMSPlugin
         }
 
         // show result
-        $data['result'] = Text::sprintf('PLG_CFI_RESULT', $inserts + $updates, $inserts, $updates) . ($errors ? '<br>' . Text::sprintf('PLG_CFI_RESULT_ERROR', $continues) : '');
+        $data['result'] = Text::sprintf('PLG_CFI_RESULT', $inserts + $updates, $inserts, $updates) .
+            ($errors ? '<br>' . Text::sprintf('PLG_CFI_RESULT_ERROR', $continues) : '');
         if ($errors) {
             $data['errors'] = $errors;
         } else {
-            @unlink($this->file);
+            unlink($this->file);
         }
         Log::add(json_encode($data), Log::INFO);
         $this->printJson($data['result'], true);
@@ -599,19 +676,25 @@ class plgSystemCfi extends CMSPlugin
             $outItem = [];
             $outItem[] = $article->id;
             $outItem[] = $catid;
-            $outItem[] = str_replace(["\n", "\r"], '', $article->title);
-            $outItem[] = str_replace(["\n", "\r"], '', $article->language);
-            $outItem[] = str_replace(["\n", "\r"], '', $article->introtext);
-            $outItem[] = str_replace(["\n", "\r"], '', $article->fulltext);
+            $outItem[] = str_replace(["\n", "\r"], ' ', $article->title);
+            $outItem[] = str_replace(["\n", "\r"], ' ', $article->language);
+            $outItem[] = str_replace(["\n", "\r"], ' ', $article->introtext);
+            $outItem[] = str_replace(["\n", "\r"], ' ', $article->fulltext);
 
             $jsFields = FieldsHelper::getFields('com_content.article', $article, true);
             foreach ($jsFields as $jsField) {
-                if ($jsField->type === 'checkboxes' || in_array($jsField->type, array_keys($this->fieldPlugins))) {
-                    $outItem[] = count($jsField->rawvalue) > 1 ? json_encode($jsField->rawvalue) : $jsField->rawvalue[0];
+                if (
+                    $jsField->type === 'checkboxes' ||
+                    in_array($jsField->type, array_keys($this->fieldPlugins))
+                ) {
+                    $outItem[] =
+                        is_countable($jsField->rawvalue) && count($jsField->rawvalue) > 1
+                            ? json_encode($jsField->rawvalue)
+                            : (is_array($jsField->rawvalue) ? $jsField->rawvalue[0] : $jsField->rawvalue);
                 } elseif (is_array($jsField->rawvalue)) {
                     $outItem[] = 'array::' . json_encode($jsField->rawvalue);
                 } else {
-                    $outItem[] = str_replace(["\n", "\r"], '', $jsField->rawvalue);
+                    $outItem[] = str_replace(["\n", "\r"], ' ', $jsField->rawvalue);
                 }
             }
             fputcsv($fileHandle, $outItem, ';');

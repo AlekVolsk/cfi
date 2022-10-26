@@ -1,18 +1,25 @@
-<?php defined('_JEXEC') or die;
+<?php
+
 /**
  * @package     Joomla.Plugin
  * @subpackage  System.cfi
  * @copyright   Copyright (C) Aleksey A. Morozov. All rights reserved.
  * @license     GNU General Public License version 3 or later; see http://www.gnu.org/licenses/gpl-3.0.txt
+ *
+ * @phpcs:disable PSR1.Classes.ClassDeclaration.MissingNamespace
  */
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Version;
 use Joomla\CMS\Language\Text;
 
-class plgSystemCfiInstallerScript
+// phpcs:disable PSR1.Files.SideEffects
+\defined('_JEXEC') or die;
+// phpcs:enable PSR1.Files.SideEffects
+
+class PlgSystemCfiInstallerScript
 {
-    function preflight($type, $parent)
+    public function preflight($type, $parent)
     {
         if (strtolower($type) === 'uninstall') {
             return true;
@@ -24,7 +31,10 @@ class plgSystemCfiInstallerScript
         $minJoomlaVersion = $manifest->attributes()->version[0];
 
         if (!class_exists('Joomla\CMS\Version')) {
-            JFactory::getApplication()->enqueueMessage(JText::sprintf('J_JOOMLA_COMPATIBLE', JText::_($name), $minJoomlaVersion), 'error');
+            JFactory::getApplication()->enqueueMessage(
+                JText::sprintf('J_JOOMLA_COMPATIBLE', JText::_($name), $minJoomlaVersion),
+                'error'
+            );
             return false;
         }
 

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="3.7" type="plugin" group="system" method="upgrade">
     <name>PLG_CFI</name>
-    <version>1.0.12</version>
-    <creationDate>August 2022</creationDate>
+    <version>1.0.14</version>
+    <creationDate>Oktober 2022</creationDate>
     <author>Aleksey A. Morozov</author>
     <authorEmail>alekvolsk@yandex.ru</authorEmail>
     <authorUrl>https://alekvolsk.pw</authorUrl>
@@ -39,6 +39,7 @@
                     <option value="CP866">CP866</option>
                     <option value="CP936">CP936</option>
                     <option value="CP950">CP950</option>
+                    <option value="CP1250">CP1250</option>
                     <option value="CP1251">CP1251</option>
                     <option value="CP1252">CP1252</option>
                     <option value="CP932">CP932</option>

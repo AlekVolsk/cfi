@@ -34,6 +34,10 @@
     background-color: var(--cfi-background);
 }
 
+.cfi-well .btn-close {
+    float: right;
+}
+
 .cfi-header {
     display: flex;
     align-items: center;
@@ -66,10 +70,14 @@
     background-color: var(--cfi-overlay-milk);
 }
 
-.cfi-export .btn {
+.cfi-export .btn:not(.btn-outline-secondary) {
     margin-left: 10px;
     margin-right: 10px;
     white-space: nowrap;
+}
+
+.cfi-export .input-group-text:empty {
+    display: none;
 }
 
 .cfi-dropzone {
@@ -101,6 +109,7 @@
     justify-content: center;
     font-size: 1.1em;
     background-color: var(--cfi-overlay-milk);
+    cursor: pointer;
     transition-duration: .2s;
     transition-timing-function: ease;
     transition-property: background-color;
