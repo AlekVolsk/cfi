@@ -47,17 +47,29 @@ class PlgSystemCfi extends CMSPlugin
     private $file = null;
     private $cp;
     private $fieldPlugins;
+    private $isAdmin;
 
     protected $autoloadLanguage = true;
 
     public function __construct(&$subject, $config)
     {
         parent::__construct($subject, $config);
+
+        if (Version::MAJOR_VERSION > 3) {
+            $this->isAdmin = Factory::$application->getName() === 'administrator';
+        } else {
+            $this->isAdmin = Factory::getApplication()->isClient('administrator');
+        }
+
         $this->initConstruct();
     }
 
     private function initConstruct($ajax = false)
     {
+        if (!$this->isAdmin) {
+            return;
+        }
+
         if (Version::MAJOR_VERSION > 3) {
             $this->app       = Factory::getContainer()->get(Joomla\CMS\Application\AdministratorApplication::class);
             $this->appConfig = $this->app->getConfig();
@@ -68,10 +80,6 @@ class PlgSystemCfi extends CMSPlugin
             $this->appConfig = Factory::getConfig();
             $user            = Factory::getUser();
             $this->db        = Factory::getDbo();
-        }
-
-        if (!$this->app->isClient('administrator')) {
-            return;
         }
 
         $this->doc = Factory::getDocument();
@@ -117,7 +125,7 @@ class PlgSystemCfi extends CMSPlugin
 
     public function onBeforeRender()
     {
-        if (!$this->app->isClient('administrator') || $this->doc->getType() != 'html') {
+        if (!$this->isAdmin || $this->doc->getType() != 'html') {
             return;
         }
 
@@ -138,7 +146,7 @@ class PlgSystemCfi extends CMSPlugin
 
     public function onAfterRender()
     {
-        if (!$this->app->isClient('administrator') || $this->doc->getType() != 'html') {
+        if (!$this->isAdmin || $this->doc->getType() != 'html') {
             return;
         }
 
