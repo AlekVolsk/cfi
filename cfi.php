@@ -58,10 +58,6 @@ class PlgSystemCfi extends CMSPlugin
 
     private function initConstruct($ajax = false)
     {
-        if (!$this->app->isClient('administrator')) {
-            return;
-        }
-
         if (Version::MAJOR_VERSION > 3) {
             $this->app       = Factory::getContainer()->get(Joomla\CMS\Application\AdministratorApplication::class);
             $this->appConfig = $this->app->getConfig();
@@ -72,6 +68,10 @@ class PlgSystemCfi extends CMSPlugin
             $this->appConfig = Factory::getConfig();
             $user            = Factory::getUser();
             $this->db        = Factory::getDbo();
+        }
+
+        if (!$this->app->isClient('administrator')) {
+            return;
         }
 
         $this->doc = Factory::getDocument();
