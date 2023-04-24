@@ -6,6 +6,8 @@
 
 _description in Russian [here](README.ru.md)_
 
+IMPORTANT! Release 1.0.15 is final, further support of this extension is not planned.
+
 System plugin for Joomla! 3.7+ for importing and exporting articles with custom fields.
 
 Adapted for Joomla! 4.
